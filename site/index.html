@@ -1,1899 +1,320 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Scoldler — Speak. Get Corrected. Improve.</title>
-    <meta
-      name="description"
-      content="Real-time English feedback that actually hurts. In a good way."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="icon" type="image/png" href="./assets/logo.png" />
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Scoldler: speak English, see how a native would say it</title>
+<meta name="description" content="A Mac app that listens while you speak English and shows how a native speaker would say it. Whisper and Ollama run on your Mac: no cloud, no account." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/png" href="./assets/logo.png" />
+<style>
+/* Hallmark · shape: Workbench · genre: atmospheric · theme: Midnight (deal 2/3, seed mac-app-listens-while-9839·87ade3a0·2026-10-30·r0) · redesign: full · draw: d04fa0
+ * hero: Counter · nav: slab · footer: colophon (swapped from index columns: the page has four links) · imagery: screenshots 3 (the app's own UI, captured with sample sessions) · signature: the real session report beside the download
+ * faces: Schibsted Grotesk 500 over 400 (by request: the owner's own face from kiln and vinylnyl, in place of Mona Sans expanded)
+ * axes: dark/grotesk-sans/cool · posture: restrained · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R5 V4 · weakest: P, the page argues with the app's own corrections instead of a slogan; the before and after carries it */
+/* Hallmark · dropped the typewriter (#tw), the reveal (.reveal) and the nav scroll script (#nav.scrolled) · motion the theme keeps still; #nav stays as the nav's id */
+/* Hallmark · dropped the drawn app windows, the feature ticker, the stats row and the glow · drawn chrome (47a), decoration, and figures nobody measured ("<2s", "∞") (46a) */
+/* Hallmark · reworded "in real time" to "when you stop" · the app builds its report after the session ends, so the old line overclaimed */
+/* Hallmark · reworded the eyebrowed heads and the feature labels to plain heads · tracked capital labels over heads are the eyebrow tell (54, 67) */
+/* Hallmark · reworded "Stop Saying It Wrong. Speak Like a Native." to "Stop saying it wrong." · the second line was the typewriter's, which is gone */
+/* Hallmark · reworded the steps "Start Recording", "Instant Analysis", "Review & Improve" to the switcher tabs "Start recording", "Read the corrections", "Keep the words" · each tab now names the screen it shows */
+/* Hallmark · reworded the feature heads to sentence case and replaced "Zero Cloud Dependency" with "Dark and light" · the local promise moved whole into the privacy section, so it is said once */
+/* Hallmark · dropped #n, #tw · n was a nav sub-element and tw the typewriter; nothing queries them now */
+/* Hallmark · reworded the feature headings "Speech Transcription", "Correction Engine", "Native Phrasing", "Coaching in Context", "Session Archive" to sentence-case terms in a definition list · the six features are one list, not six sections */
+/* Hallmark · dropped the mockup's sample times 00:02, 02:31, 02:18, 02:05 and the 100% stat · the mockup is replaced by the real app capture, and 100% offline is said in words in the privacy section */
 
-      :root {
-        --bg: #0a0a0f;
-        --bg2: #0f0f18;
-        --surface: rgba(255, 255, 255, 0.03);
-        --surface2: rgba(255, 255, 255, 0.055);
-        --border: rgba(255, 255, 255, 0.07);
-        --border2: rgba(255, 255, 255, 0.12);
-        --text: #edecf4;
-        --muted: rgba(237, 236, 244, 0.48);
-        --dim: rgba(237, 236, 244, 0.24);
-        --red: #f03e5e;
-        --red-dim: rgba(240, 62, 94, 0.15);
-        --red-border: rgba(240, 62, 94, 0.25);
-        --green: #10e08a;
-        --green-dim: rgba(16, 224, 138, 0.08);
-        --green-border: rgba(16, 224, 138, 0.2);
-        --neutral-dim: rgba(255, 255, 255, 0.05);
-        --neutral-border: rgba(255, 255, 255, 0.14);
-        --mono: "JetBrains Mono", monospace;
-      }
+@import url("./tokens.css");
+@import url("./base.css");
 
-      html {
-        scroll-behavior: smooth;
-      }
+h1, h2 { font-weight: var(--display-weight); line-height: 1.02; }
+h1 { font-size: clamp(2.75rem, 4.6vw + 0.5rem, 5rem); max-width: 12ch; }
+h2 { font-size: var(--text-display-s); max-width: 18ch; }
+h3 { font-weight: 500; letter-spacing: -0.01em; }
+.lead { color: var(--color-ink-2); }
+.muted { color: var(--color-muted); }
+.small { font-size: var(--text-sm); color: var(--color-muted); font-weight: 500; }
 
-      body {
-        font-family:
-          "Inter",
-          -apple-system,
-          sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        line-height: 1.6;
-        overflow-x: hidden;
-        -webkit-font-smoothing: antialiased;
-      }
+a { text-decoration-color: transparent; transition: text-decoration-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
+a:hover { text-decoration-line: underline; text-decoration-color: var(--color-accent); }
+a:active { color: var(--color-ink-2); }
 
-      /* noise */
-      body::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-        background-size: 256px;
-        pointer-events: none;
-        z-index: 9999;
-      }
+.btn { display: inline-flex; align-items: center; gap: var(--space-xs); min-height: 48px; padding: 0 var(--space-lg); border: var(--rule-hair) solid var(--color-rule-2); border-radius: var(--radius-pill); background: transparent; color: var(--color-ink); font: 500 var(--text-md)/1 var(--font-body); text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+.btn:hover { background: var(--color-paper-2); text-decoration: none; }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; transform: none; }
+.btn--primary { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-ink); }
+.btn--primary:hover { background: var(--color-focus); }
+.btn--small { min-height: 40px; padding: 0 var(--space-md); font-size: var(--text-sm); }
+.btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-      /* blobs — single subtle accent, no rainbow gradient */
-      .blob {
-        position: fixed;
-        border-radius: 50%;
-        filter: blur(130px);
-        pointer-events: none;
-        z-index: 0;
-      }
-      .blob-1 {
-        width: 700px;
-        height: 700px;
-        background: rgba(240, 62, 94, 0.05);
-        top: -250px;
-        left: -200px;
-      }
-      .blob-2 {
-        width: 500px;
-        height: 500px;
-        background: rgba(255, 255, 255, 0.02);
-        top: 30%;
-        right: -200px;
-      }
-      .blob-3 {
-        width: 600px;
-        height: 600px;
-        background: rgba(240, 62, 94, 0.03);
-        bottom: -200px;
-        left: 25%;
-      }
+/* nav: a slab */
+.skip { position: absolute; left: var(--space-md); top: calc(-1 * var(--space-3xl)); z-index: var(--z-toast); padding: var(--space-xs) var(--space-md); background: var(--color-ink); color: var(--color-paper); }
+.skip:focus-visible { top: var(--space-md); }
+#nav { position: sticky; top: 0; z-index: var(--z-sticky-nav); background: var(--color-paper-2); }
+#nav .container { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: var(--space-lg); }
+.wordmark { display: inline-flex; align-items: center; gap: var(--space-xs); font: 700 var(--text-lg)/1 var(--font-display); letter-spacing: -0.02em; text-decoration: none; }
+.wordmark img { width: 24px; height: 24px; }
+.nav__right { display: flex; align-items: center; gap: var(--space-lg); }
+.nav__links { display: flex; gap: var(--space-lg); font-size: var(--text-sm); font-weight: 500; color: var(--color-ink-2); }
+.nav__links a:hover { color: var(--color-ink); }
 
-      /* ── NAV ── */
-      nav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 100;
-        padding: 0 2rem;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid transparent;
-        transition:
-          border-color 0.3s,
-          background 0.3s,
-          backdrop-filter 0.3s;
-      }
-      nav.scrolled {
-        background: rgba(10, 10, 15, 0.8);
-        backdrop-filter: blur(24px) saturate(1.5);
-        border-bottom-color: var(--border);
-      }
-      .nav-logo {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        color: var(--text);
-      }
-      .nav-logo img {
-        width: 22px;
-        height: 22px;
-        border-radius: 6px;
-        display: block;
-      }
-      .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 1.75rem;
-        list-style: none;
-      }
-      .nav-links a {
-        color: var(--muted);
-        text-decoration: none;
-        font-size: 0.8125rem;
-        font-weight: 500;
-        transition: color 0.15s;
-      }
-      .nav-links a:hover {
-        color: var(--text);
-      }
-      .btn-nav {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.4375rem 1.125rem;
-        background: var(--text);
-        color: var(--bg);
-        border: none;
-        border-radius: 7px;
-        font-size: 0.8125rem;
-        font-weight: 700;
-        cursor: pointer;
-        text-decoration: none;
-        transition: opacity 0.15s;
-      }
-      .btn-nav:hover {
-        opacity: 0.88;
-      }
-      .btn-nav svg {
-        flex-shrink: 0;
-      }
+/* hero: the download beside the report */
+.hero .container { min-height: min(calc(100svh - 64px), 820px); display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-2xl); align-items: center; padding-block: var(--space-2xl); }
+.hero__text { display: grid; gap: var(--space-lg); }
+.hero__text .lead { max-width: 36ch; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.shot { margin: 0; display: grid; gap: var(--space-sm); }
+.shot img { width: 100%; height: auto; box-shadow: var(--shadow-card); outline: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent); outline-offset: -1px; }
+.shot figcaption { font-size: var(--text-sm); font-weight: 500; color: var(--color-muted); }
+.panels .shot figcaption { font-size: var(--text-md); font-weight: 400; color: var(--color-ink-2); max-width: 60ch; }
 
-      /* ── HERO ── */
-      .hero {
-        position: relative;
-        z-index: 1;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 8rem 2rem 4rem;
-        text-align: center;
-      }
+.section { padding-top: var(--section-gap); }
+.section--l { padding-top: var(--section-gap-l); }
+.head { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-2xl); align-items: end; margin-bottom: var(--space-2xl); }
+.head .lead { max-width: 44ch; }
 
-      .hero-title {
-        font-size: clamp(3.25rem, 9vw, 7rem);
-        font-weight: 900;
-        letter-spacing: -0.045em;
-        line-height: 1;
-        margin-bottom: 1.5rem;
-        animation: fadeUp 0.7s ease both;
-      }
-      .hero-title .plain {
-        color: var(--text);
-        display: block;
-      }
-      .hero-title .accent {
-        display: block;
-        color: var(--red);
-      }
+/* before and after */
+.fixes { width: 100%; border-collapse: collapse; }
+.fixes th, .fixes td { text-align: left; vertical-align: top; padding: var(--space-lg) var(--space-lg) var(--space-lg) 0; border-top: var(--rule-hair) solid var(--color-rule); }
+.fixes thead th { border-top: 0; padding-block: 0 var(--space-sm); font-size: var(--text-sm); font-weight: 500; color: var(--color-muted); }
+.fixes td.time { width: 8%; font-size: var(--text-sm); color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.fixes td.said { width: 32%; color: var(--color-muted); }
+.fixes td.said s { text-decoration-color: var(--color-error); text-decoration-thickness: 1px; }
+.fixes td.fixed { width: 34%; font-size: var(--text-lg); line-height: 1.35; }
+.fixes td.why { color: var(--color-ink-2); font-size: var(--text-sm); padding-right: 0; }
+.fixes tr.ok td.fixed { color: var(--color-muted); font-size: var(--text-md); }
 
-      .hero-sub {
-        font-size: clamp(1rem, 2.2vw, 1.1875rem);
-        color: var(--muted);
-        max-width: 520px;
-        margin: 0 auto 2.5rem;
-        font-weight: 400;
-        animation: fadeUp 0.7s 0.1s ease both;
-      }
+/* how it works: a switcher of real screens */
+.switch { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--space-2xl); align-items: start; }
+.tabs { display: grid; gap: 0; border-top: var(--rule-hair) solid var(--color-rule); }
+.tab { display: block; text-align: left; padding: var(--space-lg) 0; border: 0; border-bottom: var(--rule-hair) solid var(--color-rule); background: transparent; color: var(--color-muted); font: 500 var(--text-title)/1.15 var(--font-display); letter-spacing: -0.01em; white-space: nowrap; cursor: pointer; transition: color var(--dur-short) var(--ease-out); }
+.tab:hover { color: var(--color-ink-2); }
+.tab:active { color: var(--color-ink); }
+.tab:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.tab[aria-selected="true"] { color: var(--color-ink); }
+.panels .shot + .shot { margin-top: var(--space-2xl); }
+.js .panels .shot + .shot { margin-top: 0; }
 
-      .hero-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.875rem;
-        justify-content: center;
-        flex-wrap: wrap;
-        animation: fadeUp 0.7s 0.2s ease both;
-        margin-bottom: 5rem;
-      }
-      .btn-primary {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.8125rem 1.875rem;
-        background: var(--text);
-        color: var(--bg);
-        border: none;
-        border-radius: 10px;
-        font-size: 0.9375rem;
-        font-weight: 700;
-        cursor: pointer;
-        text-decoration: none;
-        transition:
-          opacity 0.15s,
-          transform 0.15s;
-      }
-      .btn-primary:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
-      }
-      .btn-ghost {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.8125rem 1.5rem;
-        background: transparent;
-        color: var(--muted);
-        border: 1px solid var(--border2);
-        border-radius: 10px;
-        font-size: 0.9375rem;
-        font-weight: 500;
-        cursor: pointer;
-        text-decoration: none;
-        transition:
-          color 0.15s,
-          border-color 0.15s;
-      }
-      .btn-ghost:hover {
-        color: var(--text);
-        border-color: rgba(255, 255, 255, 0.22);
-      }
+/* features: rows */
+.rows { margin: 0; display: grid; }
+.rows > div { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-2xl); padding-block: var(--space-lg); border-top: var(--rule-hair) solid var(--color-rule); align-items: baseline; }
+.rows > div:last-child { border-bottom: var(--rule-hair) solid var(--color-rule); }
+.rows dt { font: 500 var(--text-title)/1.15 var(--font-display); letter-spacing: -0.01em; }
+.rows dd { margin: 0; color: var(--color-ink-2); max-width: 52ch; }
 
-      /* ── APP MOCKUP ── */
-      .mockup-wrap {
-        position: relative;
-        width: 100%;
-        max-width: 960px;
-        animation: fadeUp 0.9s 0.3s ease both;
-      }
-      .mockup-glow {
-        position: absolute;
-        inset: -60px;
-        background: radial-gradient(
-          ellipse at 50% 40%,
-          rgba(240, 62, 94, 0.1) 0%,
-          transparent 65%
-        );
-        pointer-events: none;
-      }
-      /* app-window recreates the real Tauri window 1:1 using its actual
-       Tailwind (zinc/red/emerald/indigo) palette — not the dark-site theme. */
-      .app-window {
-        position: relative;
-        background: #ffffff;
-        border: 1px solid var(--border2);
-        border-radius: 14px;
-        overflow: hidden;
-        box-shadow:
-          0 50px 100px rgba(0, 0, 0, 0.55),
-          0 0 0 1px rgba(255, 255, 255, 0.04);
-        font-family:
-          "Inter",
-          -apple-system,
-          sans-serif;
-      }
-      .app-titlebar {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 11px 14px;
-        background: #fafafa;
-        border-bottom: 1px solid #e4e4e7;
-        user-select: none;
-      }
-      .tdot {
-        width: 11px;
-        height: 11px;
-        border-radius: 50%;
-      }
-      .tdot-r {
-        background: #ff5f57;
-      }
-      .tdot-y {
-        background: #febc2e;
-      }
-      .tdot-g {
-        background: #28c840;
-      }
-      .app-titlebar-label {
-        margin-left: 8px;
-        font-size: 0.6875rem;
-        color: #a1a1aa;
-        font-family: var(--mono);
-      }
-      .app-body {
-        display: grid;
-        grid-template-columns: 190px 1fr 240px;
-        min-height: 400px;
-      }
+/* privacy: the path a sentence takes */
+.privacy { background: var(--color-paper-2); padding-block: var(--section-gap-s); margin-top: var(--section-gap-l); }
+.path { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-md); counter-reset: step; }
+.path li { display: grid; gap: var(--space-2xs); padding: var(--space-lg); background: var(--color-paper-3); }
+.path li b { font: 500 var(--text-lg)/1.2 var(--font-display); letter-spacing: -0.01em; }
+.path li span { font-size: var(--text-sm); color: var(--color-muted); font-weight: 500; }
+.path li.off { background: transparent; outline: 1px dashed var(--color-rule-2); outline-offset: -1px; }
+.path li.off b { color: var(--color-muted); text-decoration: line-through; text-decoration-color: var(--color-error); }
+.promises { margin: var(--space-2xl) 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-md); }
+.promises li { padding-top: var(--space-md); border-top: var(--rule-hair) solid var(--color-rule-2); font-size: var(--text-lg); }
 
-      /* sidebar — mirrors SessionList.tsx */
-      .app-sidebar {
-        border-right: 1px solid #e4e4e7;
-        background: #fafafa;
-        display: flex;
-        flex-direction: column;
-      }
-      .app-sidebar-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 52px;
-        padding: 0 0.875rem;
-        border-bottom: 1px solid #e4e4e7;
-      }
-      .app-sidebar-head img {
-        width: 20px;
-        height: 20px;
-        border-radius: 5px;
-        display: block;
-      }
-      .app-sidebar-body {
-        padding: 0.75rem 0.5rem;
-      }
-      .app-sidebar-label {
-        font-size: 0.6rem;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #a1a1aa;
-        padding: 0 0.5rem;
-        margin-bottom: 0.375rem;
-      }
-      .app-session {
-        padding: 0.5rem 0.625rem;
-        border-radius: 6px;
-        margin-bottom: 2px;
-      }
-      .app-session.sel {
-        background: rgba(24, 24, 27, 0.06);
-      }
-      .app-session-name {
-        font-size: 0.6875rem;
-        font-weight: 500;
-        color: #18181b;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .app-session-meta {
-        font-size: 0.625rem;
-        color: #a1a1aa;
-        margin-top: 1px;
-        font-family: var(--mono);
-      }
+/* close */
+.close { padding-block: var(--section-gap-l); }
+.close .container { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-2xl); align-items: end; }
+.close__cta { display: grid; gap: var(--space-md); justify-items: start; }
 
-      /* main — mirrors App.tsx header + card */
-      .app-main {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        background: #fafafa;
-      }
-      .app-toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 52px;
-        padding: 0 1.25rem;
-        background: #fff;
-        border-bottom: 1px solid #e4e4e7;
-        flex-shrink: 0;
-      }
-      .app-toolbar-title {
-        font-size: 0.8125rem;
-        font-weight: 600;
-        color: #18181b;
-      }
-      .app-toolbar-sub {
-        font-size: 0.6875rem;
-        color: #a1a1aa;
-        margin-top: 2px;
-      }
-      .rec-pill {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .rec-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #ef4444;
-        animation: blink 1.2s ease-in-out infinite;
-      }
-      .rec-label {
-        font-size: 0.6875rem;
-        font-weight: 600;
-        color: #ef4444;
-      }
-      .rec-time {
-        font-family: var(--mono);
-        font-size: 0.6875rem;
-        font-weight: 600;
-        color: #4f46e5;
-        background: #eef2ff;
-        padding: 1px 6px;
-        border-radius: 4px;
-      }
-      @keyframes blink {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.3;
-        }
-      }
+/* footer: a colophon */
+.foot { border-top: var(--rule-hair) solid var(--color-rule); padding-block: var(--space-xl); }
+.foot .container { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-md); font-size: var(--text-sm); color: var(--color-muted); }
+.foot nav { display: flex; gap: var(--space-lg); }
+.foot a:hover { color: var(--color-ink); }
 
-      /* utterance cards — matches actual list markup */
-      .app-main-body {
-        padding: 1rem 1.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.625rem;
-        overflow: hidden;
-      }
-      .u-card {
-        border-radius: 8px;
-        padding: 0.7rem 0.875rem;
-        border: 1px solid #e4e4e7;
-        background: #fff;
-      }
-      .u-ts {
-        font-size: 0.625rem;
-        color: #a1a1aa;
-        font-family: var(--mono);
-        margin-bottom: 0.3rem;
-      }
-      .u-said {
-        font-size: 0.75rem;
-        color: #3f3f46;
-      }
-      .u-said b {
-        color: #18181b;
-        font-weight: 500;
-      }
-      .u-fix {
-        font-size: 0.75rem;
-        color: #dc2626;
-        margin-top: 0.3rem;
-      }
-      .u-ok {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 0.6875rem;
-        color: #059669;
-        font-weight: 600;
-        margin-top: 0.3rem;
-      }
+@media (max-width: 60rem) {
+  .hero .container, .head, .switch, .rows > div, .close .container { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
+  .hero .container { min-height: 0; }
+  .rows > div { gap: var(--space-xs); }
+  .nav__links { display: none; }
+  .path, .promises { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fixes thead { display: none; }
+  .fixes tr { display: grid; gap: var(--space-2xs); padding-block: var(--space-md); border-top: var(--rule-hair) solid var(--color-rule); }
+  .fixes td { border: 0; padding: 0; width: auto !important; }
+}
+@media (max-width: 40rem) {
+  .path, .promises { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
 
-      /* feedback panel — mirrors FeedbackSidebar.tsx exactly */
-      .app-feedback {
-        border-left: 1px solid #e4e4e7;
-        background: #fff;
-        display: flex;
-        flex-direction: column;
-      }
-      .fb-title {
-        height: 52px;
-        display: flex;
-        align-items: center;
-        padding: 0 1rem;
-        font-size: 0.6875rem;
-        font-weight: 500;
-        color: #71717a;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        border-bottom: 1px solid #e4e4e7;
-      }
-      .fb-body {
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.625rem;
-      }
-      .fb-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #f4f4f5;
-        font-size: 0.6875rem;
-        font-weight: 500;
-        color: #71717a;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-      }
-      .fb-ts {
-        font-family: var(--mono);
-        font-weight: 400;
-        text-transform: none;
-        letter-spacing: 0;
-      }
-      .fb-row {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-      .fb-label {
-        font-size: 0.6875rem;
-        color: #a1a1aa;
-      }
-      .fb-val {
-        font-size: 0.8125rem;
-        line-height: 1.45;
-      }
-      .fb-original {
-        color: #27272a;
-      }
-      .fb-corrected {
-        color: #dc2626;
-      }
-      .fb-natural {
-        color: #3f3f46;
-      }
-      .fb-vocab-label {
-        font-size: 0.6875rem;
-        color: #a1a1aa;
-      }
-      .fb-vocab {
-        font-size: 0.8125rem;
-        color: #3f3f46;
-        line-height: 1.5;
-        padding-top: 0.5rem;
-        border-top: 1px solid #f4f4f5;
-        margin-top: 0.25rem;
-      }
-
-      @keyframes fadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* ── SHARED SECTION ── */
-      section {
-        position: relative;
-        z-index: 1;
-      }
-      .container {
-        max-width: 1060px;
-        margin: 0 auto;
-        padding: 0 2rem;
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.6875rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--dim);
-        margin-bottom: 1.25rem;
-      }
-      .eyebrow::before {
-        content: "";
-        display: block;
-        width: 18px;
-        height: 1px;
-        background: currentColor;
-      }
-
-      .sec-title {
-        font-size: clamp(2rem, 4.5vw, 3.25rem);
-        font-weight: 800;
-        letter-spacing: -0.035em;
-        line-height: 1.1;
-        margin-bottom: 1rem;
-      }
-      .sec-sub {
-        font-size: 1rem;
-        color: var(--muted);
-        max-width: 440px;
-      }
-
-      /* ── MARQUEE ── */
-      .marquee-wrap {
-        overflow: hidden;
-        padding: 1.25rem 0;
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-      }
-      .marquee-track {
-        display: flex;
-        width: max-content;
-        animation: marquee 28s linear infinite;
-      }
-      .m-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0 2rem;
-        white-space: nowrap;
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: var(--dim);
-      }
-      .m-sep {
-        width: 3px;
-        height: 3px;
-        border-radius: 50%;
-        background: currentColor;
-      }
-      @keyframes marquee {
-        from {
-          transform: translateX(0);
-        }
-        to {
-          transform: translateX(-50%);
-        }
-      }
-
-      /* ── STATS ── */
-      .stats-section {
-        padding: 4rem 2rem;
-      }
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1px;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        overflow: hidden;
-        background: var(--border);
-      }
-      .stat-cell {
-        background: var(--bg2);
-        padding: 2rem 1.75rem;
-        transition: background 0.2s;
-      }
-      .stat-cell:hover {
-        background: var(--surface2);
-      }
-      .stat-num {
-        font-size: 2.25rem;
-        font-weight: 900;
-        letter-spacing: -0.04em;
-        line-height: 1;
-        color: var(--text);
-        margin-bottom: 0.5rem;
-      }
-      .stat-num.r {
-        color: var(--red);
-      }
-      .stat-num.g {
-        color: var(--green);
-      }
-      .stat-num.p {
-        color: var(--text);
-      }
-      .stat-label {
-        font-size: 0.8rem;
-        color: var(--muted);
-      }
-
-      /* ── HOW IT WORKS ── */
-      .how-section {
-        padding: 6rem 2rem;
-      }
-      .steps {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1px;
-        margin-top: 3.5rem;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        overflow: hidden;
-        background: var(--border);
-      }
-      .step {
-        background: var(--bg2);
-        padding: 2.5rem 2rem;
-        transition: background 0.2s;
-        position: relative;
-      }
-      .step:hover {
-        background: var(--surface);
-      }
-      .step-n {
-        font-family: var(--mono);
-        font-size: 0.6875rem;
-        font-weight: 500;
-        color: var(--red);
-        margin-bottom: 1.75rem;
-        display: inline-block;
-      }
-      .step-h {
-        font-size: 1.0625rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        margin-bottom: 0.625rem;
-      }
-      .step-p {
-        font-size: 0.8125rem;
-        color: var(--muted);
-        line-height: 1.7;
-      }
-      .step-line {
-        display: block;
-        width: 28px;
-        height: 2px;
-        background: var(--red);
-        margin-bottom: 1.5rem;
-        border-radius: 2px;
-      }
-
-      /* ── DEMO (real app style) ── */
-      .demo-section {
-        padding: 4rem 2rem 6rem;
-      }
-      .demo-window {
-        margin-top: 3rem;
-        background: var(--bg2);
-        border: 1px solid var(--border2);
-        border-radius: 14px;
-        overflow: hidden;
-      }
-      .demo-bar {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 10px 14px;
-        background: rgba(255, 255, 255, 0.02);
-        border-bottom: 1px solid var(--border);
-      }
-      .demo-bar-label {
-        margin-left: 8px;
-        font-size: 0.6875rem;
-        color: var(--dim);
-        font-family: var(--mono);
-      }
-      .demo-inner {
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      /* correction cards — exact app style from SessionReport.tsx */
-      .demo-card {
-        padding: 1rem 1.125rem;
-        border-left: 2px solid var(--border2);
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-      }
-      .demo-card.corr {
-        border-left-color: rgba(240, 62, 94, 0.5);
-      }
-      .demo-card.good {
-        border-left-color: rgba(16, 224, 138, 0.4);
-      }
-      .demo-card-ts {
-        font-family: var(--mono);
-        font-size: 0.6rem;
-        color: var(--dim);
-        margin-bottom: 0.15rem;
-      }
-      .demo-card-orig {
-        font-size: 0.8125rem;
-        color: var(--muted);
-      }
-      .demo-card-fix {
-        font-size: 0.875rem;
-        color: var(--text);
-        font-weight: 500;
-      }
-      .demo-card-note {
-        font-size: 0.75rem;
-        color: var(--muted);
-        margin-top: 0.15rem;
-      }
-      .demo-card-ok {
-        font-size: 0.75rem;
-        color: var(--green);
-        font-weight: 600;
-      }
-
-      /* right overview panel */
-      .demo-body {
-        display: grid;
-        grid-template-columns: 1fr 220px;
-        gap: 0;
-      }
-      .demo-corrections {
-        padding: 1.5rem;
-        border-right: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        gap: 0.875rem;
-      }
-      .demo-overview {
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-      }
-      .demo-ov-label {
-        font-size: 0.625rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--dim);
-        margin-bottom: 0.5rem;
-        padding-bottom: 0.625rem;
-        border-bottom: 1px solid var(--border);
-      }
-      .ov-stat {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid var(--border);
-      }
-      .ov-stat-label {
-        font-size: 0.7rem;
-        color: var(--muted);
-      }
-      .ov-stat-val {
-        font-size: 1.125rem;
-        font-weight: 700;
-        font-family: var(--mono);
-      }
-      .ov-stat-val.r {
-        color: var(--red);
-      }
-      .ov-vocab {
-        padding: 0.625rem 0.75rem;
-        background: var(--neutral-dim);
-        border: 1px solid var(--neutral-border);
-        border-radius: 7px;
-        font-size: 0.7rem;
-        color: var(--text);
-        line-height: 1.5;
-      }
-
-      /* ── FEATURES ── */
-      .features-section {
-        padding: 4rem 2rem 6rem;
-      }
-      .features-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1px;
-        margin-top: 3rem;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        overflow: hidden;
-        background: var(--border);
-      }
-      .feat {
-        background: var(--bg2);
-        padding: 2rem;
-        transition: background 0.2s;
-      }
-      .feat:hover {
-        background: var(--surface);
-      }
-      .feat-h {
-        font-size: 0.9375rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-      }
-      .feat-p {
-        font-size: 0.8125rem;
-        color: var(--muted);
-        line-height: 1.65;
-      }
-      .feat-tag {
-        display: inline-block;
-        margin-bottom: 1rem;
-        font-size: 0.6rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-      }
-      .feat-tag.r {
-        background: var(--red-dim);
-        color: var(--red);
-      }
-      .feat-tag.g {
-        background: var(--green-dim);
-        color: var(--green);
-      }
-      .feat-tag.p {
-        background: var(--neutral-dim);
-        color: var(--text);
-      }
-      .feat-tag.w {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--muted);
-      }
-
-      /* ── PRIVACY ── */
-      .privacy-section {
-        padding: 4rem 2rem 6rem;
-      }
-      .privacy-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 5rem;
-        align-items: center;
-        margin-top: 1rem;
-      }
-      .privacy-check {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.875rem;
-        color: var(--muted);
-      }
-      .privacy-check .chk {
-        color: var(--green);
-        font-weight: 700;
-        font-size: 0.9rem;
-      }
-      .priv-diagram {
-        background: var(--bg2);
-        border: 1px solid var(--border2);
-        border-radius: 14px;
-        padding: 2rem;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
-      }
-      .priv-box {
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
-        font-size: 0.8125rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.625rem;
-      }
-      .priv-box.you {
-        background: rgba(59, 130, 246, 0.08);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        color: #93c5fd;
-      }
-      .priv-box.app {
-        background: var(--red-dim);
-        border: 1px solid var(--red-border);
-        color: var(--red);
-      }
-      .priv-box.model {
-        background: var(--neutral-dim);
-        border: 1px solid var(--neutral-border);
-        color: var(--text);
-      }
-      .priv-box.cloud {
-        opacity: 0.35;
-        background: transparent;
-        border: 1px dashed var(--border2);
-        color: var(--muted);
-        text-decoration: line-through;
-      }
-      .priv-arrow {
-        font-size: 0.625rem;
-        color: var(--dim);
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        padding: 0 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .priv-arrow.blocked {
-        color: var(--red);
-      }
-      .priv-arrow-icon {
-        flex: 1;
-        height: 1px;
-        background: currentColor;
-        opacity: 0.3;
-      }
-
-      /* ── CTA ── */
-      .cta-section {
-        padding: 6rem 2rem 8rem;
-        text-align: center;
-      }
-      .cta-inner {
-        max-width: 640px;
-        margin: 0 auto;
-        padding: 4rem 3rem;
-        background: linear-gradient(
-          135deg,
-          rgba(240, 62, 94, 0.07) 0%,
-          rgba(240, 62, 94, 0.02) 100%
-        );
-        border: 1px solid rgba(240, 62, 94, 0.18);
-        border-radius: 20px;
-        position: relative;
-        overflow: hidden;
-      }
-      .cta-inner::before {
-        content: "";
-        position: absolute;
-        top: -80px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 360px;
-        height: 360px;
-        background: radial-gradient(
-          circle,
-          rgba(240, 62, 94, 0.12) 0%,
-          transparent 65%
-        );
-        pointer-events: none;
-      }
-      .cta-eyebrow {
-        font-size: 0.6875rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--red);
-        margin-bottom: 1rem;
-      }
-      .cta-title {
-        font-size: clamp(1.875rem, 4vw, 2.75rem);
-        font-weight: 900;
-        letter-spacing: -0.035em;
-        line-height: 1.1;
-        margin-bottom: 0.875rem;
-      }
-      .cta-sub {
-        font-size: 0.9375rem;
-        color: var(--muted);
-        margin-bottom: 2.5rem;
-      }
-      .platform-note {
-        font-size: 0.75rem;
-        color: var(--dim);
-        margin-top: 1.25rem;
-      }
-      .platform-note a {
-        color: var(--text);
-        text-decoration: underline;
-        text-underline-offset: 2px;
-      }
-
-      /* ── FOOTER ── */
-      footer {
-        padding: 2.5rem 2rem;
-        border-top: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
-      }
-      .footer-logo {
-        font-size: 0.875rem;
-        font-weight: 800;
-        color: var(--text);
-        letter-spacing: -0.02em;
-      }
-      .footer-copy {
-        font-size: 0.75rem;
-        color: var(--dim);
-      }
-      footer a {
-        font-size: 0.75rem;
-        color: var(--dim);
-        text-decoration: none;
-      }
-      footer a:hover {
-        color: var(--muted);
-      }
-
-      /* ── REVEAL ── */
-      .reveal {
-        opacity: 0;
-        transform: translateY(28px);
-        transition:
-          opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-          transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .reveal.in {
-        opacity: 1;
-        transform: none;
-      }
-      .d1 {
-        transition-delay: 0.08s;
-      }
-      .d2 {
-        transition-delay: 0.16s;
-      }
-      .d3 {
-        transition-delay: 0.24s;
-      }
-
-      /* ── TYPEWRITER ── */
-      #tw {
-        border-right: 2px solid var(--red);
-        padding-right: 1px;
-        animation: cur 0.7s step-end infinite;
-      }
-      @keyframes cur {
-        50% {
-          border-color: transparent;
-        }
-      }
-
-      /* ── RESPONSIVE ── */
-      @media (max-width: 900px) {
-        .app-body {
-          grid-template-columns: 1fr;
-        }
-        .app-sidebar,
-        .app-feedback {
-          display: none;
-        }
-        .demo-body {
-          grid-template-columns: 1fr;
-        }
-        .demo-overview {
-          display: none;
-        }
-        .stats-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .steps {
-          grid-template-columns: 1fr;
-        }
-        .features-grid {
-          grid-template-columns: 1fr;
-        }
-        .privacy-grid {
-          grid-template-columns: 1fr;
-          gap: 2.5rem;
-        }
-        .nav-links {
-          display: none;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-
-    <!-- NAV -->
-    <nav id="nav">
-      <div class="nav-logo">
-        <img src="./assets/logo.png" alt="Scoldler logo" />Scoldler
-      </div>
-      <ul class="nav-links">
-        <li><a href="#how">How it works</a></li>
-        <li><a href="#features">Features</a></li>
-        <li><a href="#privacy">Privacy</a></li>
-      </ul>
-      <a href="https://github.com/scrawl-labs/WTF-Wrong-W-My-Eng/releases/download/v0.2.0/Scoldler-0.2.0-macOS.dmg" class="btn-nav">
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-        >
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-        Download
-      </a>
-    </nav>
-
-    <!-- HERO -->
-    <section class="hero">
-      <h1 class="hero-title">
-        <span class="plain">Stop Saying It Wrong.</span>
-        <span class="accent" id="tw"></span>
-      </h1>
-
-      <p class="hero-sub">
-        Speak naturally. Scoldler catches every awkward phrase and tells you
-        exactly how a native would say it — in real time, on your Mac.
-      </p>
-
-      <div class="hero-actions">
-        <a
-          href="https://github.com/scrawl-labs/WTF-Wrong-W-My-Eng/releases/download/v0.2.0/Scoldler-0.2.0-macOS.dmg"
-          class="btn-primary"
-        >
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-          >
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          Download for macOS
-        </a>
-        <a href="#how" class="btn-ghost">See how it works →</a>
-      </div>
-
-      <!-- APP WINDOW MOCKUP — recreated with the real app's own Tailwind styling -->
-      <div class="mockup-wrap">
-        <div class="mockup-glow"></div>
-        <div class="app-window">
-          <div class="app-titlebar">
-            <span class="tdot tdot-r"></span>
-            <span class="tdot tdot-y"></span>
-            <span class="tdot tdot-g"></span>
-            <span class="app-titlebar-label"
-              >Scoldler — Session in progress</span
-            >
-          </div>
-          <div class="app-body">
-            <!-- left sidebar -->
-            <div class="app-sidebar">
-              <div class="app-sidebar-head">
-                <img src="./assets/logo.png" alt="" />
-              </div>
-              <div class="app-sidebar-body">
-                <div class="app-sidebar-label">Sessions</div>
-                <div class="app-session sel">
-                  <div class="app-session-name">Job Interview Prep</div>
-                  <div class="app-session-meta">today</div>
-                </div>
-                <div class="app-session">
-                  <div class="app-session-name">Daily Standup</div>
-                  <div class="app-session-meta">yesterday</div>
-                </div>
-                <div class="app-session">
-                  <div class="app-session-name">Client Call Practice</div>
-                  <div class="app-session-meta">mon</div>
-                </div>
-                <div class="app-session">
-                  <div class="app-session-name">Casual Conversation</div>
-                  <div class="app-session-meta">sun</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- main area -->
-            <div class="app-main">
-              <div class="app-toolbar">
-                <div>
-                  <div class="app-toolbar-title">Session in progress</div>
-                  <div class="app-toolbar-sub">
-                    Speak naturally — feedback appears on the right
-                  </div>
-                </div>
-                <div class="rec-pill">
-                  <span class="rec-dot"></span>
-                  <span class="rec-label">Recording</span>
-                  <span class="rec-time">00:02:34</span>
-                </div>
-              </div>
-
-              <div class="app-main-body">
-                <div class="u-card">
-                  <div class="u-ts">02:31</div>
-                  <div class="u-said">
-                    You said: <b>"I am very good in problem solving"</b>
-                  </div>
-                  <div class="u-fix">→ "I am very good at problem solving"</div>
-                </div>
-
-                <div class="u-card">
-                  <div class="u-ts">02:18</div>
-                  <div class="u-said">
-                    You said: <b>"I've been working here for three years"</b>
-                  </div>
-                  <div class="u-ok">
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="3"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    No corrections needed
-                  </div>
-                </div>
-
-                <div class="u-card">
-                  <div class="u-ts">02:05</div>
-                  <div class="u-said">
-                    You said: <b>"I can to handle this kind of pressure"</b>
-                  </div>
-                  <div class="u-fix">
-                    → "I can handle this kind of pressure"
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- feedback panel -->
-            <div class="app-feedback">
-              <div class="fb-title">Latest</div>
-              <div class="fb-body">
-                <div class="fb-header">
-                  <span>You said</span>
-                  <span class="fb-ts">02:31</span>
-                </div>
-                <div class="fb-row">
-                  <div class="fb-val fb-original">
-                    "I am very good in problem solving"
-                  </div>
-                </div>
-                <div class="fb-row">
-                  <div class="fb-label">Correction</div>
-                  <div class="fb-val fb-corrected">
-                    "I am very good at problem solving"
-                  </div>
-                </div>
-                <div class="fb-row">
-                  <div class="fb-label">More natural</div>
-                  <div class="fb-val fb-natural">
-                    "I excel at solving complex problems"
-                  </div>
-                </div>
-                <div class="fb-vocab-label">Vocabulary</div>
-                <div class="fb-vocab">
-                  <strong>excel at</strong> — to be outstanding in something.
-                  Stronger word choice for interviews.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MARQUEE -->
-    <div class="marquee-wrap">
-      <div class="marquee-track">
-        <span class="m-item"
-          ><span class="m-sep"></span>Real-time transcription</span
-        >
-        <span class="m-item"
-          ><span class="m-sep"></span>Grammar correction</span
-        >
-        <span class="m-item"
-          ><span class="m-sep"></span>Native expressions</span
-        >
-        <span class="m-item"
-          ><span class="m-sep"></span>Vocabulary coaching</span
-        >
-        <span class="m-item"><span class="m-sep"></span>Session history</span>
-        <span class="m-item"><span class="m-sep"></span>100% offline</span>
-        <span class="m-item"><span class="m-sep"></span>Runs on Ollama</span>
-        <span class="m-item"
-          ><span class="m-sep"></span>No cloud, no account</span
-        >
-        <span class="m-item"><span class="m-sep"></span>Dark & light mode</span>
-        <span class="m-item"
-          ><span class="m-sep"></span>Real-time transcription</span
-        >
-        <span class="m-item"
-          ><span class="m-sep"></span>Grammar correction</span
-        >
-        <span class="m-item"
-          ><span class="m-sep"></span>Native expressions</span
-        >
-        <span class="m-item"
-          ><span class="m-sep"></span>Vocabulary coaching</span
-        >
-        <span class="m-item"><span class="m-sep"></span>Session history</span>
-        <span class="m-item"><span class="m-sep"></span>100% offline</span>
-        <span class="m-item"><span class="m-sep"></span>Runs on Ollama</span>
-        <span class="m-item"
-          ><span class="m-sep"></span>No cloud, no account</span
-        >
-        <span class="m-item"><span class="m-sep"></span>Dark & light mode</span>
+  <header id="nav">
+    <div class="container">
+      <a class="wordmark" href="#main" aria-label="Scoldler, back to top"><img src="./assets/logo.png" width="24" height="24" alt="">Scoldler</a>
+      <div class="nav__right">
+        <nav class="nav__links" aria-label="Sections">
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#privacy">Privacy</a>
+        </nav>
+        <a href="https://github.com/scrawl-labs/WTF-Wrong-W-My-Eng/releases/download/v0.2.0/Scoldler-0.2.0-macOS.dmg" class="btn btn--small">Download</a>
       </div>
     </div>
+  </header>
 
-    <!-- STATS -->
-    <section class="stats-section">
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
       <div class="container">
-        <div class="stats-grid reveal">
-          <div class="stat-cell">
-            <div class="stat-num r">&lt;2s</div>
-            <div class="stat-label">Feedback latency</div>
+        <div class="hero__text">
+          <h1 id="hero-title">Stop saying it wrong.</h1>
+          <p class="lead">Speak naturally, then see how a native would say every line.</p>
+          <div class="actions">
+            <a href="https://github.com/scrawl-labs/WTF-Wrong-W-My-Eng/releases/download/v0.2.0/Scoldler-0.2.0-macOS.dmg" class="btn btn--primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download for macOS
+            </a>
           </div>
-          <div class="stat-cell">
-            <div class="stat-num g">100%</div>
-            <div class="stat-label">Offline — stays on device</div>
+          <p class="small">macOS 12+, Apple Silicon and Intel. Free. <a href="#how">See how it works</a></p>
+        </div>
+        <figure class="shot">
+          <img src="./assets/app-report.png" width="1800" height="1200" alt="Scoldler's report for a session called Job Interview Prep: 5 utterances, 4 corrections, each original sentence above its corrected form" fetchpriority="high">
+          <figcaption>A session report in Scoldler, with sample sessions.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="demo" aria-labelledby="demo-title">
+      <div class="container">
+        <div class="head">
+          <h2 id="demo-title">What a session looks like.</h2>
+          <p class="lead">One job interview practice. Four sentences, three of them fixed.</p>
+        </div>
+        <table class="fixes">
+          <caption class="visually-hidden">Sentences from a sample session, what was said and how Scoldler corrected it</caption>
+          <thead><tr><th scope="col">Time</th><th scope="col">You said</th><th scope="col">Scoldler</th><th scope="col">Why</th></tr></thead>
+          <tbody>
+            <tr><td class="time">00:12</td><td class="said"><s>I didn’t went to the meeting yesterday</s></td><td class="fixed">I didn’t go to the meeting yesterday</td><td class="why">Past simple after the auxiliary “didn’t”</td></tr>
+            <tr><td class="time">00:38</td><td class="said"><s>I am very interested about machine learning</s></td><td class="fixed">I am very interested in machine learning</td><td class="why">“Interested in” is the collocation</td></tr>
+            <tr class="ok"><td class="time">01:05</td><td class="said">The project was completed on time</td><td class="fixed">No corrections needed</td><td class="why"></td></tr>
+            <tr><td class="time">01:22</td><td class="said"><s>I think we should to consider all the options</s></td><td class="fixed">I think we should consider all the options</td><td class="why">Modal verbs take no “to” before the infinitive</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section--l" id="how" aria-labelledby="how-title">
+      <div class="container">
+        <div class="head">
+          <h2 id="how-title">Talk. Get caught. Get better.</h2>
+          <p class="lead">Record a job interview, a call or a presentation, then read what to fix.</p>
+        </div>
+        <div class="switch" data-switch>
+          <div class="tabs" role="tablist" aria-label="How Scoldler works">
+            <button class="tab" type="button" role="tab" id="t-rec" aria-controls="p-rec" aria-selected="true">Start recording</button>
+            <button class="tab" type="button" role="tab" id="t-fix" aria-controls="p-fix" aria-selected="false" tabindex="-1">Read the corrections</button>
+            <button class="tab" type="button" role="tab" id="t-voc" aria-controls="p-voc" aria-selected="false" tabindex="-1">Keep the words</button>
           </div>
-          <div class="stat-cell">
-            <div class="stat-num p">3-in-1</div>
-            <div class="stat-label">Grammar · Expressions · Vocab</div>
-          </div>
-          <div class="stat-cell">
-            <div class="stat-num">∞</div>
-            <div class="stat-label">Sessions, saved forever</div>
+          <div class="panels">
+            <figure class="shot" role="tabpanel" id="p-rec" aria-labelledby="t-rec">
+              <img src="./assets/app-recording.png" width="1800" height="1200" loading="lazy" alt="Scoldler while recording: Recording in progress with a Stop and Save button">
+              <figcaption>Hit New Session and speak naturally. Scoldler listens quietly and transcribes on your Mac.</figcaption>
+            </figure>
+            <figure class="shot" role="tabpanel" id="p-fix" aria-labelledby="t-fix">
+              <img src="./assets/app-report.png" width="1800" height="1200" loading="lazy" alt="The Corrections tab of a session report">
+              <figcaption>Stop, and each sentence is checked for grammar, unnatural phrasing and word choice.</figcaption>
+            </figure>
+            <figure class="shot" role="tabpanel" id="p-voc" aria-labelledby="t-voc">
+              <img src="./assets/app-vocab.png" width="1800" height="1200" loading="lazy" alt="The Vocabulary tab, explaining collocation and excel at">
+              <figcaption>Every session is saved with its vocabulary, so you see which mistakes repeat.</figcaption>
+            </figure>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- HOW IT WORKS -->
-    <section class="how-section" id="how">
+    <section class="section--l" id="features" aria-labelledby="features-title">
       <div class="container">
-        <div class="reveal">
-          <div class="eyebrow">How it works</div>
-          <h2 class="sec-title">Talk. Get caught. Get better.</h2>
-          <p class="sec-sub">
-            Three steps from awkward English to confident fluency.
-          </p>
+        <div class="head">
+          <h2 id="features-title">Everything in one window.</h2>
+          <p class="lead">Transcription, corrections and coaching, side by side with your sessions.</p>
         </div>
-        <div class="steps reveal" style="margin-top: 3.5rem">
-          <div class="step">
-            <span class="step-n">01</span>
-            <span class="step-line"></span>
-            <h3 class="step-h">Start Recording</h3>
-            <p class="step-p">
-              Hit record and speak naturally. A job interview, a call, a
-              presentation — Scoldler runs quietly in the background and
-              captures everything you say.
-            </p>
-          </div>
-          <div class="step">
-            <span class="step-n">02</span>
-            <span class="step-line"></span>
-            <h3 class="step-h">Instant Analysis</h3>
-            <p class="step-p">
-              Every sentence is transcribed on-device and checked for grammar
-              errors, unnatural phrasing, and vocabulary. Results appear within
-              seconds.
-            </p>
-          </div>
-          <div class="step">
-            <span class="step-n">03</span>
-            <span class="step-line"></span>
-            <h3 class="step-h">Review &amp; Improve</h3>
-            <p class="step-p">
-              Every session is saved. Review your corrections, see which
-              mistakes repeat, and watch your English measurably improve over
-              time.
-            </p>
-          </div>
-        </div>
+        <dl class="rows">
+          <div><dt>Speech transcription</dt><dd>Whisper, on your Mac. Every word you say is captured, whatever the topic.</dd></div>
+          <div><dt>Correction engine</dt><dd>Wrong tense, wrong preposition, an extra “to”: each one shown next to the corrected form.</dd></div>
+          <div><dt>Native phrasing</dt><dd>Correct but still sounds off? Scoldler suggests how a native speaker would say it.</dd></div>
+          <div><dt>Coaching in context</dt><dd>Idioms and stronger phrases explained from what you actually said, not from a dictionary.</dd></div>
+          <div><dt>Session archive</dt><dd>Every session is saved with its transcript and corrections. Rename it, review it, come back to it.</dd></div>
+          <div><dt>Dark and light</dt><dd>Follows your Mac, or switch it from the toolbar.</dd></div>
+        </dl>
       </div>
     </section>
 
-    <!-- DEMO -->
-    <section class="demo-section" id="demo">
+    <section class="privacy" id="privacy" aria-labelledby="privacy-title">
       <div class="container">
-        <div class="reveal">
-          <div class="eyebrow">Live Example</div>
-          <h2 class="sec-title">What a session looks like.</h2>
-          <p class="sec-sub">This is the actual interface. No sugarcoating.</p>
+        <div class="head">
+          <h2 id="privacy-title">Your voice never leaves your Mac.</h2>
+          <p class="lead">Your audio, your transcripts and your mistakes stay on your machine. Scoldler runs its models with Ollama, locally.</p>
         </div>
-        <div class="demo-window reveal d1">
-          <div class="demo-bar">
-            <span class="tdot tdot-r"></span>
-            <span class="tdot tdot-y"></span>
-            <span class="tdot tdot-g"></span>
-            <span class="demo-bar-label"
-              >Scoldler — Job Interview Practice · 4 corrections</span
-            >
-          </div>
-          <div class="demo-body">
-            <div class="demo-corrections">
-              <div
-                style="
-                  font-size: 0.625rem;
-                  font-weight: 700;
-                  letter-spacing: 0.1em;
-                  text-transform: uppercase;
-                  color: var(--dim);
-                  margin-bottom: 0.5rem;
-                  padding-bottom: 0.625rem;
-                  border-bottom: 1px solid var(--border);
-                "
-              >
-                Corrections
-              </div>
-
-              <div class="demo-card corr">
-                <div class="demo-card-ts">00:12</div>
-                <div class="demo-card-orig">
-                  "I didn't went to the meeting yesterday"
-                </div>
-                <div class="demo-card-fix">
-                  "I didn't go to the meeting yesterday"
-                </div>
-                <div class="demo-card-note">
-                  Preposition: past simple after auxiliary "didn't"
-                </div>
-              </div>
-
-              <div class="demo-card corr">
-                <div class="demo-card-ts">00:38</div>
-                <div class="demo-card-orig">
-                  "I am very interested about machine learning"
-                </div>
-                <div class="demo-card-fix">
-                  "I am very interested in machine learning"
-                </div>
-                <div class="demo-card-note">
-                  "interested in" is the correct collocation
-                </div>
-              </div>
-
-              <div class="demo-card good">
-                <div class="demo-card-ts">01:05</div>
-                <div class="demo-card-orig">
-                  "The project was completed on time"
-                </div>
-                <div class="demo-card-ok">No corrections needed</div>
-              </div>
-
-              <div class="demo-card corr">
-                <div class="demo-card-ts">01:22</div>
-                <div class="demo-card-orig">
-                  "I think we should to consider all the options"
-                </div>
-                <div class="demo-card-fix">
-                  "I think we should consider all the options"
-                </div>
-                <div class="demo-card-note">
-                  Modal verbs don't take "to" before the infinitive
-                </div>
-              </div>
-            </div>
-
-            <!-- overview panel -->
-            <div class="demo-overview">
-              <div>
-                <div class="demo-ov-label">Overview</div>
-                <div class="ov-stat">
-                  <span class="ov-stat-label">Utterances</span>
-                  <span class="ov-stat-val">4</span>
-                </div>
-                <div class="ov-stat">
-                  <span class="ov-stat-label">Corrections</span>
-                  <span class="ov-stat-val r">3</span>
-                </div>
-                <div class="ov-stat" style="border: none">
-                  <span class="ov-stat-label">Vocab tips</span>
-                  <span class="ov-stat-val">1</span>
-                </div>
-              </div>
-              <div>
-                <div class="demo-ov-label" style="margin-bottom: 0.625rem">
-                  Vocabulary
-                </div>
-                <div class="ov-vocab">
-                  <strong>collocation</strong> — words that naturally go
-                  together. "interested in", not "about".
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ol class="path" aria-label="Where a sentence goes">
+          <li><b>Your voice</b><span>From the microphone</span></li>
+          <li><b>Whisper</b><span>Transcribed on your Mac</span></li>
+          <li><b>Ollama</b><span>Corrected by a local model</span></li>
+          <li class="off"><b>The cloud</b><span>Never sent</span></li>
+        </ol>
+        <ul class="promises">
+          <li>Zero data collection</li>
+          <li>No account required</li>
+          <li>Works without internet</li>
+          <li>No subscription, ever</li>
+        </ul>
       </div>
     </section>
 
-    <!-- FEATURES -->
-    <section class="features-section" id="features">
+    <section class="close" id="download" aria-labelledby="download-title">
       <div class="container">
-        <div class="reveal">
-          <div class="eyebrow">Features</div>
-          <h2 class="sec-title">Everything in one window.</h2>
-        </div>
-        <div class="features-grid reveal d1">
-          <div class="feat">
-            <div class="feat-tag r">Real-time</div>
-            <h3 class="feat-h">Speech Transcription</h3>
-            <p class="feat-p">
-              Whisper-powered, on-device. Every word you say is captured with
-              high accuracy, no matter the topic or background noise.
-            </p>
-          </div>
-          <div class="feat">
-            <div class="feat-tag r">Grammar</div>
-            <h3 class="feat-h">Correction Engine</h3>
-            <p class="feat-p">
-              Wrong tense, wrong preposition, extra "to" — Scoldler finds it
-              immediately and shows the corrected form alongside your original.
-            </p>
-          </div>
-          <div class="feat">
-            <div class="feat-tag g">Expressions</div>
-            <h3 class="feat-h">Native Phrasing</h3>
-            <p class="feat-p">
-              Grammatically correct but still sounds off? Scoldler suggests how
-              a native speaker would naturally say the same thing.
-            </p>
-          </div>
-          <div class="feat">
-            <div class="feat-tag p">Vocabulary</div>
-            <h3 class="feat-h">Coaching in Context</h3>
-            <p class="feat-p">
-              Idioms and power phrases explained in context — not from a
-              dictionary. You learn the words that actually come up in real
-              conversation.
-            </p>
-          </div>
-          <div class="feat">
-            <div class="feat-tag w">History</div>
-            <h3 class="feat-h">Session Archive</h3>
-            <p class="feat-p">
-              Every session is saved locally with full transcripts and
-              correction breakdowns. Rename, review, and track your progress
-              over time.
-            </p>
-          </div>
-          <div class="feat">
-            <div class="feat-tag w">Local</div>
-            <h3 class="feat-h">Zero Cloud Dependency</h3>
-            <p class="feat-p">
-              Everything runs on-device via Ollama. No subscriptions, no data
-              collection, no internet required after the initial model download.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PRIVACY -->
-    <section class="privacy-section" id="privacy">
-      <div class="container">
-        <div class="privacy-grid">
-          <div class="reveal">
-            <div class="eyebrow">Privacy</div>
-            <h2 class="sec-title">Your voice never leaves your Mac.</h2>
-            <p class="sec-sub" style="margin-bottom: 2rem">
-              Every bit of processing happens locally. Your audio, your
-              transcripts, your mistakes — all on-device. Scoldler uses
-              <strong style="color: var(--text)">Ollama</strong> to run models
-              entirely on your machine.
-            </p>
-            <div style="display: flex; flex-direction: column; gap: 0.875rem">
-              <div class="privacy-check">
-                <span class="chk">✓</span> Zero data collection
-              </div>
-              <div class="privacy-check">
-                <span class="chk">✓</span> No account required
-              </div>
-              <div class="privacy-check">
-                <span class="chk">✓</span> Works without internet
-              </div>
-              <div class="privacy-check">
-                <span class="chk">✓</span> No subscription, ever
-              </div>
-            </div>
-          </div>
-
-          <div class="priv-diagram reveal d2">
-            <div class="priv-box you">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M12 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
-                <path d="M19 21v-2a7 7 0 0 0-14 0v2" />
-              </svg>
-              Your voice
-            </div>
-            <div class="priv-arrow">
-              <div class="priv-arrow-icon"></div>
-              transcribed locally
-              <div class="priv-arrow-icon"></div>
-            </div>
-            <div class="priv-box app">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <path d="M9 9h6M9 12h6M9 15h4" />
-              </svg>
-              Scoldler
-            </div>
-            <div class="priv-arrow">
-              <div class="priv-arrow-icon"></div>
-              processed by local model
-              <div class="priv-arrow-icon"></div>
-            </div>
-            <div class="priv-box model">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <circle cx="12" cy="12" r="3" />
-                <path
-                  d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
-                />
-              </svg>
-              Ollama (local AI)
-            </div>
-            <div class="priv-arrow blocked">
-              <div class="priv-arrow-icon"></div>
-              never sent to
-              <div class="priv-arrow-icon"></div>
-            </div>
-            <div class="priv-box cloud">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
-              </svg>
-              The cloud
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="cta-section" id="download">
-      <div class="container">
-        <div class="cta-inner reveal">
-          <div class="cta-eyebrow">Free Download</div>
-          <h2 class="cta-title">Start speaking better today.</h2>
-          <p class="cta-sub">No signup. No credit card. No excuses.</p>
-          <a
-            href="https://github.com/scrawl-labs/WTF-Wrong-W-My-Eng/releases/download/v0.2.0/Scoldler-0.2.0-macOS.dmg"
-            class="btn-primary"
-            style="font-size: 1rem; padding: 0.9375rem 2.25rem"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-            >
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Download Scoldler — Free
+        <h2 id="download-title">Start speaking better today.</h2>
+        <div class="close__cta">
+          <p class="lead">No signup. No credit card. No excuses.</p>
+          <a href="https://github.com/scrawl-labs/WTF-Wrong-W-My-Eng/releases/download/v0.2.0/Scoldler-0.2.0-macOS.dmg" class="btn btn--primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Scoldler, free
           </a>
-          <p class="platform-note">
-            macOS 12+ · Apple Silicon &amp; Intel · Everything included, no
-            setup required
-          </p>
+          <p class="small">macOS 12+, Apple Silicon and Intel. Everything is included; the first launch downloads the models.</p>
         </div>
       </div>
     </section>
+  </main>
 
-    <!-- FOOTER -->
-    <footer>
-      <div></div>
-      <div class="footer-copy">
-        © 2026 Scoldler. Your data stays on your machine.
-      </div>
-      <div style="display: flex; gap: 1.5rem">
-        <a href="#">GitHub</a>
-        <a href="#">Privacy</a>
-      </div>
-    </footer>
+  <footer class="foot">
+    <div class="container">
+      <span>© 2026 Scoldler. Your data stays on your Mac.</span>
+      <nav aria-label="Footer">
+        <a href="https://github.com/scrawl-labs/scolder">GitHub</a>
+        <a href="#privacy">Privacy</a>
+      </nav>
+    </div>
+  </footer>
 
-    <script>
-      // nav scroll
-      const nav = document.getElementById("nav");
-      window.addEventListener(
-        "scroll",
-        () => {
-          nav.classList.toggle("scrolled", window.scrollY > 10);
-        },
-        { passive: true },
-      );
-
-      // reveal
-      const obs = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((e) => {
-            if (e.isIntersecting) {
-              e.target.classList.add("in");
-              obs.unobserve(e.target);
-            }
-          });
-        },
-        { threshold: 0.1 },
-      );
-      document.querySelectorAll(".reveal").forEach((el) => obs.observe(el));
-
-      // typewriter
-      const words = [
-        "Start Right Now.",
-        "Speak Like a Native.",
-        "Sound Confident.",
-        "Level Up.",
-      ];
-      let wi = 0,
-        ci = 0,
-        del = false;
-      const tw = document.getElementById("tw");
-      function tick() {
-        const w = words[wi];
-        if (!del) {
-          tw.textContent = w.slice(0, ++ci);
-          if (ci === w.length) {
-            del = true;
-            return setTimeout(tick, 1800);
-          }
-        } else {
-          tw.textContent = w.slice(0, --ci);
-          if (ci === 0) {
-            del = false;
-            wi = (wi + 1) % words.length;
-            return setTimeout(tick, 250);
-          }
-        }
-        setTimeout(tick, del ? 35 : 75);
-      }
-      setTimeout(tick, 900);
-    </script>
-  </body>
+<script>
+document.documentElement.classList.add('js');
+document.querySelectorAll('[data-switch]').forEach((root) => {
+  const tabs = [...root.querySelectorAll('[role="tab"]')];
+  const select = (tab) => tabs.forEach((t) => {
+    const on = t === tab;
+    t.setAttribute('aria-selected', on);
+    t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  });
+  select(tabs[0]);
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => select(t));
+    t.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      const n = tabs[(i + d + tabs.length) % tabs.length];
+      select(n); n.focus();
+    });
+  });
+});
+</script>
+</body>
 </html>
