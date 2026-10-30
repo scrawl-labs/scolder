@@ -29,3 +29,6 @@ build-assets/models/*.bin
 # Tauri build outputs
 src-tauri/target/
 .gstack/
+
+# Hallmark design-tool scratch (screenshots, lint records)
+.hallmark/
