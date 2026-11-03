@@ -132,6 +132,11 @@ export function SessionReport({
                       "{u.feedback.corrected}"
                     </p>
                   )}
+                  {u.feedback.explanation && (
+                    <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1 break-words">
+                      {u.feedback.explanation}
+                    </p>
+                  )}
                   {u.feedback.better_expression && (
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 break-words">
                       {u.feedback.better_expression}

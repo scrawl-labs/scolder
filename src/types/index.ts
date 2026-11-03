@@ -6,6 +6,8 @@ export interface FeedbackResult {
   corrected: string | null;
   better_expression: string | null;
   idiom_or_vocab: string | null;
+  // 무엇이 왜 틀렸는지 한 줄 설명 - 이전 버전 세션에는 없음
+  explanation?: string | null;
   has_error: boolean;
 }
 

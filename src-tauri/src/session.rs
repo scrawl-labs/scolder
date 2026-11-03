@@ -6,7 +6,7 @@
 // - String formatting: format! 매크로
 // - std::fs: 파일시스템 작업
 
-use crate::feedback::{self, FeedbackResult};
+use crate::{feedback::{self, FeedbackResult}, turns};
 use anyhow::Result;
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
@@ -91,9 +91,12 @@ pub async fn finalize_session(
         eprintln!("[Session] 전문 저장 실패: {e}");
     }
 
-    let total = raw_utterances.len();
+    // 짧게 끊긴 전사 조각들을 말하기 턴으로 묶고 잡음/추임새는 제외 (turns.rs 참고)
+    let turns = turns::group_into_turns(raw_utterances);
+
+    let total = turns.len();
     let mut utterances = Vec::with_capacity(total);
-    for (i, raw) in raw_utterances.iter().enumerate() {
+    for (i, turn) in turns.iter().enumerate() {
         let _ = app.emit(
             "session-progress",
             SessionProgress {
@@ -103,25 +106,27 @@ pub async fn finalize_session(
             },
         );
 
-        match feedback::get_feedback(&raw.text).await {
-            Ok(fb) => utterances.push(Utterance {
-                timestamp: raw.timestamp.clone(),
-                feedback: fb,
-            }),
+        // 앞 2턴 + 뒤 1턴을 문맥으로 함께 보냄 - 조각만 보고 의미를 지어내지 않도록
+        let before: Vec<&str> = turns[i.saturating_sub(2)..i]
+            .iter()
+            .map(|t| t.text.as_str())
+            .collect();
+        let after: Vec<&str> = turns
+            .get(i + 1)
+            .map(|t| vec![t.text.as_str()])
+            .unwrap_or_default();
+
+        let fb = match feedback::get_feedback(&turn.text, &before, &after).await {
+            Ok(fb) => fb,
             Err(e) => {
-                eprintln!("[Feedback] \"{}\" 처리 실패: {e}", raw.text);
-                utterances.push(Utterance {
-                    timestamp: raw.timestamp.clone(),
-                    feedback: FeedbackResult {
-                        original: raw.text.clone(),
-                        corrected: None,
-                        better_expression: None,
-                        idiom_or_vocab: None,
-                        has_error: false,
-                    },
-                });
+                eprintln!("[Feedback] \"{}\" 처리 실패: {e}", turn.text);
+                feedback::empty_feedback(&turn.text)
             }
-        }
+        };
+        utterances.push(Utterance {
+            timestamp: turn.timestamp.clone(),
+            feedback: fb,
+        });
     }
 
     let path = save_report(&utterances, start_time)?;
@@ -241,14 +246,15 @@ fn build_markdown(utterances: &[Utterance], start_time: &DateTime<Local>) -> Str
     let errors: Vec<_> = utterances.iter().filter(|u| u.feedback.has_error).collect();
     if !errors.is_empty() {
         md.push_str("## 🔴 교정 목록\n\n");
-        md.push_str("| 내가 한 말 | 교정 | 더 자연스럽게 |\n");
-        md.push_str("|:----------|:-----|:--------------|\n");
+        md.push_str("| 내가 한 말 | 교정 | 이유 | 더 자연스럽게 |\n");
+        md.push_str("|:----------|:-----|:-----|:--------------|\n");
         for u in &errors {
             let corrected = u.feedback.corrected.as_deref().unwrap_or("—");
+            let why = u.feedback.explanation.as_deref().unwrap_or("—");
             let better = u.feedback.better_expression.as_deref().unwrap_or("—");
             md.push_str(&format!(
-                "| {} | {} | {} |\n",
-                u.feedback.original, corrected, better
+                "| {} | {} | {} | {} |\n",
+                u.feedback.original, corrected, why, better
             ));
         }
         md.push('\n');
@@ -270,6 +276,9 @@ fn build_markdown(utterances: &[Utterance], start_time: &DateTime<Local>) -> Str
             md.push_str(&format!("**[{}]** {}\n", u.timestamp, u.feedback.original));
             if let Some(ref c) = u.feedback.corrected {
                 md.push_str(&format!("→ 교정: _{c}_\n"));
+            }
+            if let Some(ref why) = u.feedback.explanation {
+                md.push_str(&format!("→ 이유: {why}\n"));
             }
             if let Some(ref b) = u.feedback.better_expression {
                 md.push_str(&format!("→ 더 자연스럽게: _{b}_\n"));
