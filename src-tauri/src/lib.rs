@@ -7,6 +7,7 @@ mod ollama;
 mod session;
 mod setup;
 mod transcribe;
+mod turns;
 
 use commands::AppState;
 use tauri::Manager;
