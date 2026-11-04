@@ -22,6 +22,10 @@ pub struct AppState {
     /// 녹음 중 여부 (원자적 bool - 락 없이 안전)
     pub is_recording: Arc<AtomicBool>,
 
+    /// 세션 시작 처리 중 여부 - 권한 프롬프트 응답을 기다리는 동안 true
+    /// is_recording과 분리: get_recording_status 폴링이 "대기 중"을 "녹음 중"으로 보지 않게 함
+    pub is_starting: Arc<AtomicBool>,
+
     /// 파일 업로드 처리 중 여부 (원자적 bool - 락 없이 안전)
     /// 라이브 녹음(is_recording)과 파일 업로드가 동시에 진행되지 않도록 상호 배제하는 데 사용
     pub is_processing_upload: Arc<AtomicBool>,
@@ -52,6 +56,7 @@ impl Default for AppState {
     fn default() -> Self {
         Self {
             is_recording: Arc::new(AtomicBool::new(false)),
+            is_starting: Arc::new(AtomicBool::new(false)),
             is_processing_upload: Arc::new(AtomicBool::new(false)),
             utterances: Arc::new(Mutex::new(Vec::new())),
             raw_utterances: Arc::new(Mutex::new(Vec::new())),
@@ -95,11 +100,23 @@ pub async fn run_setup(app: AppHandle, state: State<'_, AppState>) -> Result<(),
     Ok(())
 }
 
-/// 영어 수업 세션 시작
-///
-/// 1. 마이크 오디오 캡처 스레드 시작
-/// 2. 오디오 처리(Whisper) 비동기 태스크 시작 - 녹음 중에는 전사만 하고 LLM은 호출하지 않음
-///    (실시간 피드백은 MVP에서 제외 - 세션 전체 문맥으로 STOP & SAVE 시점에 일괄 생성)
+/// is_starting 플래그를 선점하고, 어떤 경로로 반환되든(에러·성공·패닉) drop 시 해제
+struct StartingGuard<'a>(&'a AtomicBool);
+
+impl<'a> StartingGuard<'a> {
+    fn claim(flag: &'a AtomicBool) -> Option<Self> {
+        flag.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .ok()
+            .map(|_| Self(flag))
+    }
+}
+
+impl Drop for StartingGuard<'_> {
+    fn drop(&mut self) {
+        self.0.store(false, Ordering::SeqCst);
+    }
+}
+
 /// 세션 시작 전 확인: 업로드 동시 진행, Whisper 모델, 마이크 권한
 /// 권한이 미결정이면 시스템 프롬프트 응답을 타임아웃 없이 기다림 -
 /// 이후 캡처 시작 타임아웃에는 사용자 응답 시간이 포함되지 않음
@@ -117,22 +134,23 @@ async fn precheck_session_start(state: &AppState) -> Result<(), String> {
     Ok(())
 }
 
+/// 영어 수업 세션 시작
+///
+/// 1. 마이크 오디오 캡처 스레드 시작
+/// 2. 오디오 처리(Whisper) 비동기 태스크 시작 - 녹음 중에는 전사만 하고 LLM은 호출하지 않음
+///    (실시간 피드백은 MVP에서 제외 - 세션 전체 문맥으로 STOP & SAVE 시점에 일괄 생성)
 #[tauri::command]
 pub async fn start_session(state: State<'_, AppState>) -> Result<(), String> {
-    // 녹음 상태를 원자적으로 선점 - 권한 프롬프트 응답을 기다리는 동안(await) 사용자가
-    // New Session을 다시 눌러도 두 번째 호출은 여기서 거절됨 (load 후 store 사이의 경합 제거)
-    if state
-        .is_recording
-        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
-        .is_err()
-    {
+    // 시작 처리를 원자적으로 선점 - 권한 프롬프트 응답을 기다리는 동안(await) 사용자가
+    // New Session을 다시 눌러도 두 번째 호출은 여기서 거절됨
+    let _starting = StartingGuard::claim(&state.is_starting)
+        .ok_or_else(|| "A session is already starting".to_string())?;
+
+    if state.is_recording.load(Ordering::SeqCst) {
         return Err("A session is already in progress".to_string());
     }
 
-    if let Err(e) = precheck_session_start(&state).await {
-        state.is_recording.store(false, Ordering::SeqCst);
-        return Err(e);
-    }
+    precheck_session_start(&state).await?;
 
     // 이전 세션 데이터 초기화
     state.utterances.lock().unwrap().clear();
@@ -325,7 +343,7 @@ pub async fn start_session_from_file(
     state: State<'_, AppState>,
     path: String,
 ) -> Result<String, String> {
-    if state.is_recording.load(Ordering::SeqCst) {
+    if state.is_recording.load(Ordering::SeqCst) || state.is_starting.load(Ordering::SeqCst) {
         return Err("A session is already in progress".to_string());
     }
 
@@ -490,4 +508,28 @@ pub fn rename_session(path: String, new_title: String) -> Result<(), String> {
 #[tauri::command]
 pub fn delete_session(path: String) -> Result<(), String> {
     session::delete_session(&path).map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod starting_guard_tests {
+    use super::*;
+
+    #[test]
+    fn second_claim_fails_while_first_is_held() {
+        let flag = AtomicBool::new(false);
+        let first = StartingGuard::claim(&flag);
+        assert!(first.is_some());
+        assert!(StartingGuard::claim(&flag).is_none());
+    }
+
+    #[test]
+    fn flag_is_released_on_drop() {
+        let flag = AtomicBool::new(false);
+        {
+            let _g = StartingGuard::claim(&flag).unwrap();
+            assert!(flag.load(Ordering::SeqCst));
+        }
+        assert!(!flag.load(Ordering::SeqCst));
+        assert!(StartingGuard::claim(&flag).is_some());
+    }
 }

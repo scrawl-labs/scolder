@@ -31,6 +31,8 @@ import "./App.css";
 
 export function App() {
   const [isRecording, setIsRecording] = useState(false);
+  // 마이크 권한 응답 대기 등 start_session 진행 중 - 중복 클릭 방지
+  const [isStarting, setIsStarting] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [liveTranscript, setLiveTranscript] = useState<RawUtterance[]>([]);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -117,6 +119,7 @@ export function App() {
     setLoadedTranscript("");
     setUtterances([]);
     setReportPath("");
+    setIsStarting(true);
     try {
       // cpal의 저수준 CoreAudio 호출만으로는 macOS 마이크 권한(TCC) 대화상자가
       // 아예 안 뜨는 경우가 있어, AVFoundation 기반 API로 명시적으로 요청한다.
@@ -130,13 +133,17 @@ export function App() {
         await requestMicrophonePermission();
       }
 
-      setSessionStartTime(new Date());
+      // start_session은 마이크 권한 프롬프트 응답까지 기다리므로, 타이머는 실제 캡처가
+      // 시작된 뒤에 켠다 (프롬프트 대기 시간이 녹음 시간에 섞이지 않게)
       await invoke("start_session");
+      setSessionStartTime(new Date());
       setIsRecording(true);
     } catch (err) {
       setErrorMsg(String(err));
       setIsRecording(false);
       setSessionStartTime(null);
+    } finally {
+      setIsStarting(false);
     }
   };
 
@@ -281,7 +288,8 @@ export function App() {
 
   const isSetupReady = setupProgress?.stage === "ready";
   const canViewTranscript = isRecording || showReport;
-  const newSessionDisabled = isRecording || isGeneratingReport || !isSetupReady;
+  const newSessionDisabled =
+    isRecording || isStarting || isGeneratingReport || !isSetupReady;
   const rightPanelTitle = showTranscript
     ? "Transcript"
     : isGeneratingReport
