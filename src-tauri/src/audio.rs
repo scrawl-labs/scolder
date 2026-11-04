@@ -37,7 +37,7 @@ pub fn start_capture(tx: mpsc::SyncSender<Vec<f32>>) -> anyhow::Result<cpal::Str
 
     let device = host
         .default_input_device()
-        .ok_or_else(|| anyhow::anyhow!("마이크를 찾을 수 없습니다"))?;
+        .ok_or_else(|| anyhow::anyhow!("No microphone found"))?;
 
     let supported_config = device.default_input_config()?;
     let channels = supported_config.channels();

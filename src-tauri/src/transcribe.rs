@@ -31,10 +31,10 @@ fn get_or_init_context() -> Result<&'static WhisperContext> {
     let ctx = WhisperContext::new_with_params(
         model_path
             .to_str()
-            .context("모델 경로가 유효한 UTF-8이 아닙니다")?,
+            .context("Model path is not valid UTF-8")?,
         WhisperContextParameters::default(),
     )
-    .context("Whisper 모델 로드 실패")?;
+    .context("Failed to load the Whisper model")?;
 
     // set()이 실패해도(다른 스레드가 동시에 먼저 로드) 문제 없음 - get()으로 재조회
     let _ = WHISPER_CTX.set(ctx);
@@ -81,7 +81,7 @@ pub fn transcribe(audio: &[f32]) -> Result<String> {
     let ctx = get_or_init_context()?;
 
     // State: 실제 추론에 사용되는 컨텍스트 (호출마다 새로 생성 - 모델 자체는 캐시되어 공유됨)
-    let mut state = ctx.create_state().context("Whisper 상태 생성 실패")?;
+    let mut state = ctx.create_state().context("Failed to create Whisper state")?;
 
     // 추론 파라미터 설정
     let mut params = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
@@ -91,10 +91,10 @@ pub fn transcribe(audio: &[f32]) -> Result<String> {
     params.set_print_timestamps(false);
 
     // 추론 실행
-    state.full(params, audio).context("Whisper 추론 실패")?;
+    state.full(params, audio).context("Whisper transcription failed")?;
 
     // 결과 세그먼트 수집
-    let n_segments = state.full_n_segments().context("세그먼트 수 조회 실패")?;
+    let n_segments = state.full_n_segments().context("Failed to read the segment count")?;
 
     let text: String = (0..n_segments)
         .filter_map(|i| state.full_get_segment_text(i).ok())
@@ -134,7 +134,7 @@ pub fn transcribe_with_segments(
     on_progress: impl FnMut(i32) + 'static,
 ) -> Result<Vec<TranscribedSegment>> {
     let ctx = get_or_init_context()?;
-    let mut state = ctx.create_state().context("Whisper 상태 생성 실패")?;
+    let mut state = ctx.create_state().context("Failed to create Whisper state")?;
 
     let mut params = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
     params.set_language(Some("en"));
@@ -143,23 +143,23 @@ pub fn transcribe_with_segments(
     params.set_print_timestamps(false);
     params.set_progress_callback_safe(on_progress);
 
-    state.full(params, audio).context("Whisper 추론 실패")?;
+    state.full(params, audio).context("Whisper transcription failed")?;
 
-    let n_segments = state.full_n_segments().context("세그먼트 수 조회 실패")?;
+    let n_segments = state.full_n_segments().context("Failed to read the segment count")?;
 
     let mut segments = Vec::with_capacity(n_segments as usize);
     for i in 0..n_segments {
         let text = state
             .full_get_segment_text(i)
-            .context("세그먼트 텍스트 조회 실패")?
+            .context("Failed to read segment text")?
             .trim()
             .to_string();
         if text.is_empty() {
             continue;
         }
         // t0/t1은 10ms 단위(centisecond)로 반환됨 - 초 단위로 변환
-        let t0 = state.full_get_segment_t0(i).context("세그먼트 시작 시각 조회 실패")?;
-        let t1 = state.full_get_segment_t1(i).context("세그먼트 종료 시각 조회 실패")?;
+        let t0 = state.full_get_segment_t0(i).context("Failed to read segment start time")?;
+        let t1 = state.full_get_segment_t1(i).context("Failed to read segment end time")?;
 
         segments.push(TranscribedSegment {
             text,
@@ -180,7 +180,7 @@ pub async fn ensure_model_downloaded(app: &AppHandle) -> Result<()> {
 
     let path = get_model_path();
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).context("모델 저장 디렉터리 생성 실패")?;
+        std::fs::create_dir_all(parent).context("Failed to create the model directory")?;
     }
 
     emit_progress(
@@ -195,7 +195,7 @@ pub async fn ensure_model_downloaded(app: &AppHandle) -> Result<()> {
         .get(WHISPER_MODEL_URL)
         .send()
         .await
-        .context("Whisper 모델 다운로드 요청 실패")?;
+        .context("Failed to download the Whisper model")?;
     let total = resp.content_length().unwrap_or(0);
     let mut downloaded: u64 = 0;
 
@@ -203,13 +203,13 @@ pub async fn ensure_model_downloaded(app: &AppHandle) -> Result<()> {
     let tmp_path = path.with_extension("bin.downloading");
     let mut file = tokio::fs::File::create(&tmp_path)
         .await
-        .context("임시 파일 생성 실패")?;
+        .context("Failed to create a temporary file")?;
     let mut stream = resp.bytes_stream();
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.context("다운로드 중 오류")?;
+        let chunk = chunk.context("Error while downloading")?;
         tokio::io::AsyncWriteExt::write_all(&mut file, &chunk)
             .await
-            .context("파일 쓰기 실패")?;
+            .context("Failed to write the file")?;
         downloaded += chunk.len() as u64;
         let percent = if total > 0 {
             (downloaded as f32 / total as f32) * 100.0
@@ -225,7 +225,7 @@ pub async fn ensure_model_downloaded(app: &AppHandle) -> Result<()> {
     }
     drop(file);
 
-    std::fs::rename(&tmp_path, &path).context("다운로드한 모델 파일 이동 실패")?;
+    std::fs::rename(&tmp_path, &path).context("Failed to move the downloaded model file")?;
 
     Ok(())
 }
@@ -234,7 +234,7 @@ pub async fn ensure_model_downloaded(app: &AppHandle) -> Result<()> {
 pub fn model_download_instructions() -> String {
     let path = get_model_path();
     format!(
-        "Whisper 모델이 없습니다.\n\n다음 명령어로 다운로드하세요:\n\nmkdir -p ~/.wtf-english/models\ncurl -L https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en.bin \\\n  -o {:?}\n\n파일 크기: 약 1.5GB",
+        "The Whisper model is missing.\n\nDownload it with:\n\nmkdir -p ~/.wtf-english/models\ncurl -L https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en.bin \\\n  -o {:?}\n\nFile size: about 1.5 GB",
         path
     )
 }

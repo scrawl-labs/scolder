@@ -27,7 +27,7 @@ pub const WHISPER_SAMPLE_RATE: u32 = 16_000;
 /// 파일을 열 수 없거나, 포맷을 인식할 수 없거나, 오디오 트랙이 없거나,
 /// 디코딩된 샘플이 하나도 없을 때
 pub fn decode_file_to_pcm16k(path: &Path) -> Result<Vec<f32>> {
-    let file = File::open(path).with_context(|| format!("파일을 열 수 없습니다: {path:?}"))?;
+    let file = File::open(path).with_context(|| format!("Could not open the file: {path:?}"))?;
     let mss = MediaSourceStream::new(Box::new(file), Default::default());
 
     let mut hint = Hint::new();
@@ -42,7 +42,7 @@ pub fn decode_file_to_pcm16k(path: &Path) -> Result<Vec<f32>> {
             &FormatOptions::default(),
             &MetadataOptions::default(),
         )
-        .context("오디오 포맷을 인식할 수 없습니다 (지원 포맷: wav, mp3, m4a)")?;
+        .context("Unrecognized audio format (supported: wav, mp3, m4a)")?;
 
     let mut format = probed.format;
 
@@ -50,18 +50,18 @@ pub fn decode_file_to_pcm16k(path: &Path) -> Result<Vec<f32>> {
         .tracks()
         .iter()
         .find(|t| t.codec_params.codec != CODEC_TYPE_NULL)
-        .ok_or_else(|| anyhow!("오디오 트랙을 찾을 수 없습니다"))?
+        .ok_or_else(|| anyhow!("No audio track found"))?
         .clone();
 
     let track_id = track.id;
     let source_rate = track
         .codec_params
         .sample_rate
-        .ok_or_else(|| anyhow!("샘플레이트 정보를 읽을 수 없습니다"))?;
+        .ok_or_else(|| anyhow!("Could not read the sample rate"))?;
 
     let mut decoder = symphonia::default::get_codecs()
         .make(&track.codec_params, &DecoderOptions::default())
-        .context("디코더를 생성할 수 없습니다")?;
+        .context("Could not create the audio decoder")?;
 
     // 채널 수는 컨테이너 헤더만으로 알 수 없는 코덱이 있음 (예: m4a의 AAC는
     // 채널 정보가 AudioSpecificConfig 안에 있어서, 컨테이너 파싱 단계가 아니라
@@ -82,7 +82,7 @@ pub fn decode_file_to_pcm16k(path: &Path) -> Result<Vec<f32>> {
             Err(SymphoniaError::IoError(ref e)) if e.kind() == std::io::ErrorKind::UnexpectedEof => {
                 break;
             }
-            Err(e) => return Err(e).context("오디오 패킷 읽기 실패"),
+            Err(e) => return Err(e).context("Failed to read audio packets"),
         };
 
         if packet.track_id() != track_id {
@@ -93,7 +93,7 @@ pub fn decode_file_to_pcm16k(path: &Path) -> Result<Vec<f32>> {
             Ok(d) => d,
             // 개별 패킷 손상은 건너뛰고 계속 - 파일 전체를 실패시키지 않음
             Err(SymphoniaError::DecodeError(_)) => continue,
-            Err(e) => return Err(e).context("오디오 디코딩 실패"),
+            Err(e) => return Err(e).context("Failed to decode audio"),
         };
 
         if sample_buf.is_none() {

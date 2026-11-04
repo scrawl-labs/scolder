@@ -186,21 +186,21 @@ pub async fn get_feedback(text: &str, before: &[&str], after: &[&str]) -> Result
         }))
         .send()
         .await
-        .context("Ollama 서버에 연결할 수 없습니다. `ollama serve`가 실행 중인지 확인하세요.")?;
+        .context("Could not connect to Ollama. Make sure `ollama serve` is running.")?;
 
     // 응답 JSON 파싱
     let body: serde_json::Value = response
         .json()
         .await
-        .context("Ollama 응답 파싱 실패")?;
+        .context("Failed to parse the Ollama response")?;
 
     let response_text = body["response"]
         .as_str()
-        .context("Ollama 응답에 'response' 필드가 없습니다")?;
+        .context("Ollama response has no 'response' field")?;
 
     // LLM이 반환한 JSON 문자열 → FeedbackResult 구조체
     let mut feedback: FeedbackResult = serde_json::from_str(response_text)
-        .with_context(|| format!("피드백 JSON 파싱 실패:\n{response_text}"))?;
+        .with_context(|| format!("Failed to parse feedback JSON:\n{response_text}"))?;
 
     // 원문 주입 (LLM 응답에 포함되지 않으므로)
     feedback.original = text.to_string();
