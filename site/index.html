@@ -25,6 +25,7 @@
 /* Hallmark · dropped #n, #tw · n was a nav sub-element and tw the typewriter; nothing queries them now */
 /* Hallmark · reworded the feature headings "Speech Transcription", "Correction Engine", "Native Phrasing", "Coaching in Context", "Session Archive" to sentence-case terms in a definition list · the six features are one list, not six sections */
 /* Hallmark · dropped the mockup's sample times 00:02, 02:31, 02:18, 02:05 and the 100% stat · the mockup is replaced by the real app capture, and 100% offline is said in words in the privacy section */
+/* Hallmark · added the install section (#install) after features · the app is not code-signed, so first-time users meet four macOS prompts; each step carries the real screenshot at native size, no upscaling, no drawn chrome */
 
 @import url("./tokens.css");
 @import url("./base.css");
@@ -106,6 +107,18 @@ a:active { color: var(--color-ink-2); }
 .rows dt { font: 500 var(--text-title)/1.15 var(--font-display); letter-spacing: -0.01em; }
 .rows dd { margin: 0; color: var(--color-ink-2); max-width: 52ch; }
 
+/* install: numbered steps beside real macOS screenshots */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; counter-reset: step; }
+.step { counter-increment: step; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-2xl); padding-block: var(--space-xl); border-top: var(--rule-hair) solid var(--color-rule); align-items: start; }
+.step:last-child { border-bottom: var(--rule-hair) solid var(--color-rule); }
+.step__text { display: grid; gap: var(--space-sm); min-width: 0; }
+.step__text h3::before { content: counter(step); display: block; margin-bottom: var(--space-xs); font-size: var(--text-sm); font-weight: 500; color: var(--color-accent); font-variant-numeric: tabular-nums; }
+.step__text p:not([class]) { color: var(--color-ink-2); }
+.step .shot { justify-items: start; min-width: 0; }
+.step .shot img { width: auto; max-width: 100%; height: auto; }
+.tip { margin-top: var(--space-xl); color: var(--color-ink-2); }
+.tip b { font-weight: 500; color: var(--color-ink); }
+
 /* privacy: the path a sentence takes */
 .privacy { background: var(--color-paper-2); padding-block: var(--section-gap-s); margin-top: var(--section-gap-l); }
 .path { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-md); counter-reset: step; }
@@ -129,7 +142,7 @@ a:active { color: var(--color-ink-2); }
 .foot a:hover { color: var(--color-ink); }
 
 @media (max-width: 60rem) {
-  .hero .container, .head, .switch, .rows > div, .close .container { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
+  .hero .container, .head, .switch, .rows > div, .step, .close .container { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
   .hero .container { min-height: 0; }
   .rows > div { gap: var(--space-xs); }
   .nav__links { display: none; }
@@ -153,9 +166,10 @@ a:active { color: var(--color-ink-2); }
         <nav class="nav__links" aria-label="Sections">
           <a href="#how">How it works</a>
           <a href="#features">Features</a>
+          <a href="#install">Install</a>
           <a href="#privacy">Privacy</a>
         </nav>
-        <a href="https://github.com/scrawl-labs/WTF-Wrong-W-My-Eng/releases/download/v0.2.0/Scoldler-0.2.0-macOS.dmg" class="btn btn--small">Download</a>
+        <a href="https://github.com/scrawl-labs/scolder/releases/download/v0.3.0/Scoldler-0.3.0-macOS.dmg" class="btn btn--small">Download</a>
       </div>
     </div>
   </header>
@@ -167,7 +181,7 @@ a:active { color: var(--color-ink-2); }
           <h1 id="hero-title">Stop saying it wrong.</h1>
           <p class="lead">Speak naturally, then see how a native would say every line.</p>
           <div class="actions">
-            <a href="https://github.com/scrawl-labs/WTF-Wrong-W-My-Eng/releases/download/v0.2.0/Scoldler-0.2.0-macOS.dmg" class="btn btn--primary">
+            <a href="https://github.com/scrawl-labs/scolder/releases/download/v0.3.0/Scoldler-0.3.0-macOS.dmg" class="btn btn--primary">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Download for macOS
             </a>
@@ -247,6 +261,50 @@ a:active { color: var(--color-ink-2); }
       </div>
     </section>
 
+    <section class="section--l" id="install" aria-labelledby="install-title">
+      <div class="container">
+        <div class="head">
+          <h2 id="install-title">Install in four steps.</h2>
+          <p class="lead">Scoldler isn’t code-signed yet, so macOS asks a few questions the first time. Here is what to click.</p>
+        </div>
+        <ol class="steps">
+          <li class="step">
+            <div class="step__text">
+              <h3>Drag Scoldler into Applications</h3>
+              <p>Open the downloaded .dmg and drop the app onto the Applications folder.</p>
+            </div>
+            <figure class="shot"><img src="./assets/install/01-drag-to-applications.png" width="660" height="400" loading="lazy" alt="The Scoldler disk image window, with the Scoldler icon and an arrow pointing to the Applications folder"></figure>
+          </li>
+          <li class="step">
+            <div class="step__text">
+              <h3>Open it and allow it in Privacy &amp; Security</h3>
+              <p>macOS will say it can’t verify the app. Click Done. Then open System Settings, go to Privacy &amp; Security, scroll down to Security, click <b>Open Anyway</b> and confirm with your password or Touch ID.</p>
+              <p class="small">On macOS 14 or earlier you can also right-click the app and choose Open.</p>
+            </div>
+            <figure class="shot"><img src="./assets/install/02-open-anyway.png" width="474" height="100" loading="lazy" alt="System Settings, Privacy &amp; Security: “Scoldler” was blocked to protect your Mac, with an Open Anyway button"></figure>
+          </li>
+          <li class="step">
+            <div class="step__text">
+              <h3>Allow the microphone</h3>
+              <p>Click New Session and choose Allow when macOS asks for microphone access.</p>
+              <p class="small">If the first recording fails right after you allow it, click New Session again.</p>
+              <p class="small">Clicked Don’t Allow? Turn Scoldler on in System Settings, Privacy &amp; Security, Microphone.</p>
+            </div>
+            <figure class="shot"><img src="./assets/install/03-allow-microphone.png" width="260" height="248" loading="lazy" alt="The macOS dialog asking whether Scoldler may access the microphone, with the Allow button"></figure>
+          </li>
+          <li class="step">
+            <div class="step__text">
+              <h3>Let the first launch finish downloading</h3>
+              <p>Scoldler fetches everything it needs: the Whisper speech model (about 1.5 GB), plus the Ollama runtime and llama3.1:8b (about 4.7 GB). That is roughly 6 GB, so the first start takes a while.</p>
+              <p class="small">Nothing to install separately. Ollama comes bundled through this download.</p>
+            </div>
+            <figure class="shot"><img src="./assets/install/04-first-launch-download.png" width="520" height="200" loading="lazy" alt="Scoldler on first launch showing “Downloading speech recognition model” at 44 percent"></figure>
+          </li>
+        </ol>
+        <p class="tip"><b>Using speakers instead of earphones?</b> Turn on Voice Isolation (Control Center, Mic Mode) so the other person’s voice isn’t transcribed.</p>
+      </div>
+    </section>
+
     <section class="privacy" id="privacy" aria-labelledby="privacy-title">
       <div class="container">
         <div class="head">
@@ -273,7 +331,7 @@ a:active { color: var(--color-ink-2); }
         <h2 id="download-title">Start speaking better today.</h2>
         <div class="close__cta">
           <p class="lead">No signup. No credit card. No excuses.</p>
-          <a href="https://github.com/scrawl-labs/WTF-Wrong-W-My-Eng/releases/download/v0.2.0/Scoldler-0.2.0-macOS.dmg" class="btn btn--primary">
+          <a href="https://github.com/scrawl-labs/scolder/releases/download/v0.3.0/Scoldler-0.3.0-macOS.dmg" class="btn btn--primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download Scoldler, free
           </a>
@@ -288,6 +346,7 @@ a:active { color: var(--color-ink-2); }
       <span>© 2026 Scoldler. Your data stays on your Mac.</span>
       <nav aria-label="Footer">
         <a href="https://github.com/scrawl-labs/scolder">GitHub</a>
+        <a href="#install">Install</a>
         <a href="#privacy">Privacy</a>
       </nav>
     </div>
