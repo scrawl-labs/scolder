@@ -48,7 +48,7 @@ pub fn is_ollama_installed() -> bool {
 /// Ollama 런타임(바이너리 + dylib 번들) 다운로드 + 압축 해제
 async fn install_ollama_runtime(app: &AppHandle) -> Result<()> {
     let dir = get_ollama_dir();
-    std::fs::create_dir_all(&dir).context("Ollama 설치 디렉터리 생성 실패")?;
+    std::fs::create_dir_all(&dir).context("Failed to create the Ollama install directory")?;
 
     let tgz_path = dir.join("ollama-darwin.tgz");
 
@@ -59,19 +59,19 @@ async fn install_ollama_runtime(app: &AppHandle) -> Result<()> {
         .get(OLLAMA_DOWNLOAD_URL)
         .send()
         .await
-        .context("Ollama 런타임 다운로드 요청 실패")?;
+        .context("Failed to download the Ollama runtime")?;
     let total = resp.content_length().unwrap_or(0);
     let mut downloaded: u64 = 0;
 
     let mut file = tokio::fs::File::create(&tgz_path)
         .await
-        .context("임시 파일 생성 실패")?;
+        .context("Failed to create a temporary file")?;
     let mut stream = resp.bytes_stream();
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.context("다운로드 중 오류")?;
+        let chunk = chunk.context("Error while downloading")?;
         tokio::io::AsyncWriteExt::write_all(&mut file, &chunk)
             .await
-            .context("파일 쓰기 실패")?;
+            .context("Failed to write the file")?;
         downloaded += chunk.len() as u64;
         let percent = if total > 0 {
             (downloaded as f32 / total as f32) * 100.0
@@ -88,17 +88,17 @@ async fn install_ollama_runtime(app: &AppHandle) -> Result<()> {
     let status = Command::new("/usr/bin/tar")
         .args([
             "-xzf",
-            tgz_path.to_str().context("경로가 유효한 UTF-8이 아닙니다")?,
+            tgz_path.to_str().context("Path is not valid UTF-8")?,
             "-C",
-            dir.to_str().context("경로가 유효한 UTF-8이 아닙니다")?,
+            dir.to_str().context("Path is not valid UTF-8")?,
         ])
         .status()
-        .context("압축 해제 프로세스 실행 실패")?;
+        .context("Failed to run the extraction process")?;
 
     let _ = std::fs::remove_file(&tgz_path);
 
     if !status.success() {
-        anyhow::bail!("Ollama 런타임 압축 해제 실패 (tar exit code: {status})");
+        anyhow::bail!("Failed to extract the Ollama runtime (tar exit code: {status})");
     }
 
     Ok(())
@@ -108,7 +108,7 @@ async fn install_ollama_runtime(app: &AppHandle) -> Result<()> {
 /// 반환된 Child는 호출자(AppState)가 보관하다가 앱 종료 시 kill해야 함
 pub fn start_server() -> Result<Child> {
     let models_dir = get_ollama_models_dir();
-    std::fs::create_dir_all(&models_dir).context("모델 저장 디렉터리 생성 실패")?;
+    std::fs::create_dir_all(&models_dir).context("Failed to create the model directory")?;
 
     Command::new(get_ollama_binary_path())
         .arg("serve")
@@ -116,7 +116,7 @@ pub fn start_server() -> Result<Child> {
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .spawn()
-        .context("Ollama 서버 프로세스 시작 실패")
+        .context("Failed to start the Ollama server")
 }
 
 /// 서버가 요청을 받을 수 있을 때까지 대기 (최대 timeout_secs초, 0.5초 간격 폴링)
@@ -143,10 +143,10 @@ async fn is_model_present(model: &str) -> Result<bool> {
         .get(format!("{OLLAMA_API}/api/tags"))
         .send()
         .await
-        .context("Ollama 서버에 연결할 수 없습니다")?
+        .context("Could not connect to the Ollama server")?
         .json()
         .await
-        .context("모델 목록 응답 파싱 실패")?;
+        .context("Failed to parse the model list")?;
 
     // "llama3.1:8b" 태그가 "llama3.1:8b" 또는 "llama3.1:latest" 등으로 저장될 수 있어
     // ':' 앞부분(모델 이름)만 우선 비교
@@ -168,13 +168,13 @@ async fn pull_model(app: &AppHandle, model: &str) -> Result<()> {
         .json(&serde_json::json!({ "model": model, "stream": true }))
         .send()
         .await
-        .context("모델 다운로드 요청 실패")?;
+        .context("Failed to request the model download")?;
 
     let mut stream = resp.bytes_stream();
     let mut buf = String::new();
 
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.context("모델 다운로드 중 오류")?;
+        let chunk = chunk.context("Error while downloading the model")?;
         buf.push_str(&String::from_utf8_lossy(&chunk));
 
         // Ollama pull API는 한 줄에 JSON 객체 하나씩(NDJSON) 스트리밍함
@@ -213,7 +213,7 @@ pub async fn ensure_ready(app: &AppHandle) -> Result<Child> {
     let child = start_server()?;
 
     if !wait_for_server_ready(15).await {
-        anyhow::bail!("Ollama 서버가 15초 내에 시작되지 않았습니다");
+        anyhow::bail!("The Ollama server did not start within 15 seconds");
     }
 
     if !is_model_present(OLLAMA_MODEL).await? {

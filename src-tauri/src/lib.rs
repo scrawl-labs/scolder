@@ -3,6 +3,7 @@ mod commands;
 mod decode;
 mod dsp;
 mod feedback;
+mod mic_permission;
 mod ollama;
 mod session;
 mod setup;

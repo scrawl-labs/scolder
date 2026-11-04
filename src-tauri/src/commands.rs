@@ -100,21 +100,38 @@ pub async fn run_setup(app: AppHandle, state: State<'_, AppState>) -> Result<(),
 /// 1. 마이크 오디오 캡처 스레드 시작
 /// 2. 오디오 처리(Whisper) 비동기 태스크 시작 - 녹음 중에는 전사만 하고 LLM은 호출하지 않음
 ///    (실시간 피드백은 MVP에서 제외 - 세션 전체 문맥으로 STOP & SAVE 시점에 일괄 생성)
-#[tauri::command]
-pub async fn start_session(state: State<'_, AppState>) -> Result<(), String> {
-    // 이미 녹음 중이면 에러
-    if state.is_recording.load(Ordering::SeqCst) {
-        return Err("이미 세션이 진행 중입니다".to_string());
-    }
-
+/// 세션 시작 전 확인: 업로드 동시 진행, Whisper 모델, 마이크 권한
+/// 권한이 미결정이면 시스템 프롬프트 응답을 타임아웃 없이 기다림 -
+/// 이후 캡처 시작 타임아웃에는 사용자 응답 시간이 포함되지 않음
+async fn precheck_session_start(state: &AppState) -> Result<(), String> {
     // 파일 업로드 처리 중이면 마이크 세션을 시작하지 않음 (동시 진행 방지)
     if state.is_processing_upload.load(Ordering::SeqCst) {
-        return Err("파일 처리가 진행 중입니다. 완료 후 다시 시도해주세요.".to_string());
+        return Err("A file is being processed. Please try again when it finishes.".to_string());
     }
 
-    // Whisper 모델 존재 확인
     if !transcribe::is_model_ready() {
         return Err(transcribe::model_download_instructions());
+    }
+
+    crate::mic_permission::ensure_microphone_access().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn start_session(state: State<'_, AppState>) -> Result<(), String> {
+    // 녹음 상태를 원자적으로 선점 - 권한 프롬프트 응답을 기다리는 동안(await) 사용자가
+    // New Session을 다시 눌러도 두 번째 호출은 여기서 거절됨 (load 후 store 사이의 경합 제거)
+    if state
+        .is_recording
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+        .is_err()
+    {
+        return Err("A session is already in progress".to_string());
+    }
+
+    if let Err(e) = precheck_session_start(&state).await {
+        state.is_recording.store(false, Ordering::SeqCst);
+        return Err(e);
     }
 
     // 이전 세션 데이터 초기화
@@ -155,10 +172,10 @@ pub async fn start_session(state: State<'_, AppState>) -> Result<(), String> {
         println!("[Audio Thread] 종료");
     });
 
-    // 캡처 스레드가 실제로 마이크를 열었는지 최대 3초 대기 후 확인
+    // 캡처 스레드가 실제로 마이크를 열었는지 최대 5초 대기 후 확인
     // (recv_timeout은 블로킹이므로 spawn_blocking으로 감싸 tokio 런타임을 막지 않음)
     let capture_ready = tauri::async_runtime::spawn_blocking(move || {
-        ready_rx.recv_timeout(std::time::Duration::from_secs(3))
+        ready_rx.recv_timeout(std::time::Duration::from_secs(5))
     })
     .await;
 
@@ -170,14 +187,14 @@ pub async fn start_session(state: State<'_, AppState>) -> Result<(), String> {
             state.is_recording.store(false, Ordering::SeqCst);
             *state.stop_tx.lock().unwrap() = None;
             return Err(format!(
-                "마이크 캡처를 시작할 수 없습니다: {e}\n\n시스템 설정 > 개인정보 보호 및 보안 > 마이크에서 Scoldler 권한을 확인해주세요."
+                "Could not start microphone capture: {e}\n\nCheck that Scoldler is enabled in System Settings → Privacy & Security → Microphone."
             ));
         }
         Ok(Err(_)) | Err(_) => {
             state.is_recording.store(false, Ordering::SeqCst);
             *state.stop_tx.lock().unwrap() = None;
             return Err(
-                "마이크 캡처 시작 확인 시간이 초과됐습니다. 마이크 권한을 확인해주세요."
+                "Timed out starting microphone capture. Check your microphone and its permission."
                     .to_string(),
             );
         }
@@ -309,12 +326,12 @@ pub async fn start_session_from_file(
     path: String,
 ) -> Result<String, String> {
     if state.is_recording.load(Ordering::SeqCst) {
-        return Err("이미 세션이 진행 중입니다".to_string());
+        return Err("A session is already in progress".to_string());
     }
 
     // 이미 다른 파일 업로드를 처리 중이면 에러 (동시 업로드 방지)
     if state.is_processing_upload.load(Ordering::SeqCst) {
-        return Err("이미 파일을 처리하는 중입니다".to_string());
+        return Err("A file is already being processed".to_string());
     }
 
     if !transcribe::is_model_ready() {
@@ -342,7 +359,7 @@ pub async fn start_session_from_file(
         crate::decode::decode_file_to_pcm16k(&file_path)
     })
     .await
-    .map_err(|e| format!("디코딩 작업 실패: {e}"))?
+    .map_err(|e| format!("Decoding task failed: {e}"))?
     .map_err(|e| e.to_string())?;
 
     let app_for_transcribe = app.clone();
@@ -355,11 +372,11 @@ pub async fn start_session_from_file(
         })
     })
     .await
-    .map_err(|e| format!("전사 작업 실패: {e}"))?
+    .map_err(|e| format!("Transcription task failed: {e}"))?
     .map_err(|e| e.to_string())?;
 
     if segments.is_empty() {
-        return Err("인식된 발화가 없습니다".to_string());
+        return Err("No speech was detected".to_string());
     }
 
     let raw_utterances: Vec<session::RawUtterance> = segments
@@ -437,7 +454,7 @@ pub fn get_session_info(path: String) -> session::SessionInfo {
 #[tauri::command]
 pub fn read_session(path: String) -> Result<String, String> {
     std::fs::read_to_string(&path)
-        .map_err(|e| format!("세션 읽기 실패: {}", e))
+        .map_err(|e| format!("Failed to read session: {}", e))
 }
 
 /// 특정 세션의 구조화된 발화 기록 읽기 (JSON 사이드카)

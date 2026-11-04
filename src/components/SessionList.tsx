@@ -239,14 +239,14 @@ export function SessionList({
                       <>
                         <button
                           onClick={() => confirmDelete(session)}
-                          title="삭제 확인"
+                          title="Confirm delete"
                           className="p-1 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
                         >
                           <CheckIcon className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => setConfirmingPath(null)}
-                          title="취소"
+                          title="Cancel"
                           className="p-1 rounded text-zinc-400 dark:text-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                         >
                           <XMarkIcon className="w-3 h-3" />
@@ -256,14 +256,14 @@ export function SessionList({
                       <>
                         <button
                           onClick={() => startRename(session)}
-                          title="이름 변경"
+                          title="Rename"
                           className="p-1 rounded text-zinc-400 dark:text-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                         >
                           <PencilIcon className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => handleTrashClick(session)}
-                          title="삭제"
+                          title="Delete"
                           className="p-1 rounded text-zinc-400 dark:text-zinc-600 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
                         >
                           <TrashIcon className="w-3 h-3" />
