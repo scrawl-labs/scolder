@@ -1,6 +1,6 @@
 [package]
 name = "wtf-wrong-w-my-eng"
-version = "0.3.0"
+version = "0.3.1"
 description = "AI English tutor - real-time speech feedback during online lessons"
 authors = ["you"]
 edition = "2021"
