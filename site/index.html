@@ -25,7 +25,7 @@
 /* Hallmark · dropped #n, #tw · n was a nav sub-element and tw the typewriter; nothing queries them now */
 /* Hallmark · reworded the feature headings "Speech Transcription", "Correction Engine", "Native Phrasing", "Coaching in Context", "Session Archive" to sentence-case terms in a definition list · the six features are one list, not six sections */
 /* Hallmark · dropped the mockup's sample times 00:02, 02:31, 02:18, 02:05 and the 100% stat · the mockup is replaced by the real app capture, and 100% offline is said in words in the privacy section */
-/* Hallmark · added the install section (#install) after features · the app is not code-signed, so first-time users meet four macOS prompts; each step carries the real screenshot at native size, no upscaling, no drawn chrome */
+/* Hallmark · added the install section (#install) after features · the app is not code-signed, so first-time users meet four macOS prompts; each step carries a real 2x screenshot shown at its 1x size, no upscaling, no drawn chrome */
 
 @import url("./tokens.css");
 @import url("./base.css");
@@ -115,7 +115,7 @@ a:active { color: var(--color-ink-2); }
 .step__text h3::before { content: counter(step); display: block; margin-bottom: var(--space-xs); font-size: var(--text-sm); font-weight: 500; color: var(--color-accent); font-variant-numeric: tabular-nums; }
 .step__text p:not([class]) { color: var(--color-ink-2); }
 .step .shot { justify-items: start; min-width: 0; }
-.step .shot img { width: auto; max-width: 100%; height: auto; }
+.step .shot img { max-width: 100%; height: auto; }
 .tip { margin-top: var(--space-xl); color: var(--color-ink-2); }
 .tip b { font-weight: 500; color: var(--color-ink); }
 
@@ -281,13 +281,12 @@ a:active { color: var(--color-ink-2); }
               <p>macOS will say it can’t verify the app. Click Done. Then open System Settings, go to Privacy &amp; Security, scroll down to Security, click <b>Open Anyway</b> and confirm with your password or Touch ID.</p>
               <p class="small">On macOS 14 or earlier you can also right-click the app and choose Open.</p>
             </div>
-            <figure class="shot"><img src="./assets/install/02-open-anyway.png" width="474" height="100" loading="lazy" alt="System Settings, Privacy &amp; Security: “Scoldler” was blocked to protect your Mac, with an Open Anyway button"></figure>
+            <figure class="shot"><img src="./assets/install/02-open-anyway.png" width="463" height="92" loading="lazy" alt="System Settings, Privacy &amp; Security: “Scoldler” was blocked to protect your Mac, with an Open Anyway button"></figure>
           </li>
           <li class="step">
             <div class="step__text">
               <h3>Allow the microphone</h3>
               <p>Click New Session and choose Allow when macOS asks for microphone access.</p>
-              <p class="small">If the first recording fails right after you allow it, click New Session again.</p>
               <p class="small">Clicked Don’t Allow? Turn Scoldler on in System Settings, Privacy &amp; Security, Microphone.</p>
             </div>
             <figure class="shot"><img src="./assets/install/03-allow-microphone.png" width="260" height="248" loading="lazy" alt="The macOS dialog asking whether Scoldler may access the microphone, with the Allow button"></figure>
@@ -298,7 +297,7 @@ a:active { color: var(--color-ink-2); }
               <p>Scoldler fetches everything it needs: the Whisper speech model (about 1.5 GB), plus the Ollama runtime and llama3.1:8b (about 4.7 GB). That is roughly 6 GB, so the first start takes a while.</p>
               <p class="small">Nothing to install separately. Ollama comes bundled through this download.</p>
             </div>
-            <figure class="shot"><img src="./assets/install/04-first-launch-download.png" width="520" height="200" loading="lazy" alt="Scoldler on first launch showing “Downloading speech recognition model” at 44 percent"></figure>
+            <figure class="shot"><img src="./assets/install/04-first-launch-download.png" width="520" height="200" loading="lazy" alt="Scoldler on first launch showing “Downloading speech recognition model” with its progress bar"></figure>
           </li>
         </ol>
         <p class="tip"><b>Using speakers instead of earphones?</b> Turn on Voice Isolation (Control Center, Mic Mode) so the other person’s voice isn’t transcribed.</p>
